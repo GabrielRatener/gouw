@@ -23,13 +23,5 @@ module.exports = (function(){
 		return this.__is;
 	}
 
-	me.special = function(){
-		this.__special = true;
-	}
-
-	me.isSpecial = function(){
-		return this.__special;
-	}
-
 	return me;
 }());

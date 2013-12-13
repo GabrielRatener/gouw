@@ -2,6 +2,43 @@
 /* Gennerally useful methods */
 
 //element wise array addition
+Array.prototype.process = function(func){
+	var rett = [];
+	for (var i = 0; i < this.length; i++) {
+		rett.push(func(this[i]));
+	}
+
+	return rett;
+}
+
+Array.prototype.contains = function(val, strict){
+	if(strict){
+		for (var i = 0; i < this.length; i++) {
+			if(this[i] === val) return true;
+		}
+	}else{
+		for (var i = 0; i < this.length; i++) {
+			if(this[i] == val) return true;
+		}
+	}
+
+	return false;
+}
+
+Array.prototype.histogram = function(){
+	var obj = {};
+
+	for (var i = 0; i < this.length; i++) {
+		if(obj.hasOwnProperty(this[i])){
+			obj[this[i]]++;
+		}else{
+			obj[this[i]] = 1;
+		}
+	}
+
+	return obj;
+}
+
 function adda(){
 	var lead = arguments[0], arr = [];
 	for (var i = 0; i < lead.length; i++) {
@@ -15,20 +52,6 @@ function adda(){
 
 	return arr;
 }
-
-// counts frequency of each element in array
-function freqa(array){
-	var obj = {};
-
-	for (var i = 0; i < array.length; i++) {
-		if(obj.hasOwnProperty(array[i])){
-			obj[array[i]]++;
-		}else{
-			obj[array[i]] = 1;
-		}
-	};
-}
-
 
 function Game(players, options){
 	// players[0]: black, players[1]: white
@@ -57,7 +80,7 @@ function Game(players, options){
 	}
 	this.__board = board;
 
-	this.__turn = (!!handicap) ? 1 : 0;
+	this.__turn = (!!opts.handicap) ? 1 : 0;
 
 	this.__turns = [];
 
@@ -83,7 +106,7 @@ Game.prototype = (function(){
 		});
 	}
 
-
+	
 	/* Information */
 
 	me.at = function(point){
@@ -110,44 +133,57 @@ Game.prototype = (function(){
 		return array;
 	}
 
-	me.isValidMove = function(point, color){
+	me.validate = function(point, color){
 
 		// make sure space is empty
 		var now = this.at(point);
 		if(!now || now.is() !== "empty") return false;
 
 		// if point is empty space
-		var hspec = now.special(),
-			hgroup = now.group(),
-			hsize = hgroup.getSize();
+		var ads = this.adjacent(point),
+			ncolor = (!!color) ? 0 : 1;
+			pcs = ads.process(function(pt){
+				return this.at(pt);
+			}),
+			freqs = pcs.process(function(object){
+				return object.is();
+			}).histogram();
 
 
-		// 
-		var col = color || this.__turn;
-			ad = this.adjacent(point),
-			ml = [],
-			hl = [];
+		// test for ko
+		if(freqs[ncolor] === 4){
+			var libs = pcs.process(function(object){
+				if(object.size() === 1 && object.liberties() === 1){
+					return 1;
+				}else return 0;
+			}),
+			freq = libs.histogram();
 
-		// booleans
+			if(freq[0] === 1){
+				var index = freq.indexOf(1),
+					place = adjacent[index],
+					lastt = this.__turns[this.__turns.length - 1];
 
-
-		for(var i = 0; i < ad.length; i++){
-			if(ad[i]){
-				var is = ad[i].is();
-				if(is === "empty") return true;
-				else{
-					var group = ad[i].group(),
-						liberties = group.liberties();
-					if(is === col){
-						if(liberties > 1) return true;
-						else ml.push(liberties);
-					}else{
-						var size = group.getSize(),
-							spec = ad[i].special();
-					}
+				if(lastt.added.contains(place) && last.removed.contains(point)){
+					return false;
 				}
 			}
 		}
+
+		// if no ko, test for liberties
+		var finale = pcs.process(function(obj){
+			var is = obj.is();
+			if(is === color){
+				if(obj.group().liberties() > 1) return 0;
+				else return 1;
+			}else if(is === ncolor){
+				if(obj.group().liberties() > 1) return 1;
+				else return 0;
+			}else return 0;
+		}).histogram();
+
+		if(finale[0]) return true;
+		else return false;
 	}
 
 	/* Commands */
