@@ -37,3 +37,5 @@ Unique.prototype = (function(){
 
 	return me;
 }());
+
+module.exports = Unique;

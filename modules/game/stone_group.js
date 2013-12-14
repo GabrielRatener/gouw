@@ -12,3 +12,5 @@ StoneGroup.prototype = (function(){
 
 	return me;
 }());
+
+module.exports = StoneGroup;

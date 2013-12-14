@@ -20,3 +20,5 @@ Stone.prototype = (function(){
 	
 	return me;
 }());
+
+module.exports = Stone;

@@ -1,43 +1,4 @@
 
-/* Gennerally useful methods */
-
-//element wise array addition
-Array.prototype.process = function(func){
-	var rett = [];
-	for (var i = 0; i < this.length; i++) {
-		rett.push(func(this[i]));
-	}
-
-	return rett;
-}
-
-Array.prototype.contains = function(val, strict){
-	if(strict){
-		for (var i = 0; i < this.length; i++) {
-			if(this[i] === val) return true;
-		}
-	}else{
-		for (var i = 0; i < this.length; i++) {
-			if(this[i] == val) return true;
-		}
-	}
-
-	return false;
-}
-
-Array.prototype.histogram = function(){
-	var obj = {};
-
-	for (var i = 0; i < this.length; i++) {
-		if(obj.hasOwnProperty(this[i])){
-			obj[this[i]]++;
-		}else{
-			obj[this[i]] = 1;
-		}
-	}
-
-	return obj;
-}
 
 function adda(){
 	var lead = arguments[0], arr = [];
@@ -213,3 +174,5 @@ Game.prototype = (function(){
 
 	return me;
 }());
+
+module.exports = Game;

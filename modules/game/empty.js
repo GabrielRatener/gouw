@@ -16,3 +16,5 @@ Empty.prototype = (function(){
 
 	return me;
 }());
+
+module.exports = Empty;
