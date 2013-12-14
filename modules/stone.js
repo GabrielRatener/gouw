@@ -17,10 +17,6 @@ Stone.prototype = (function(){
 	me.is = function(){
 		return this.__color;
 	}
-
-	me.group = function(){
-		return this.__group;
-	}
 	
 	return me;
 }());
