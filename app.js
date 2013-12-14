@@ -62,6 +62,7 @@ var http = require('http'),
 var Unique = require('./modules/unique'),
 	Profile = require('./modules/profile'),
 	ProfileList = require('./modules/profile_list'),
+	ProfilePair = require('./modules/profile_pair'),
 	Game = require('./modules/game/game');
 
 
@@ -248,26 +249,45 @@ var Names = (function(){
 	return me;
 }());
 
-var GamesManager = (function(){
+//create new list and have it cleaned every minute
+var ONLINE = new ProfileList();
+ONLINE.cleanList(60000);
+
+var REQUESTS = {};
+
+var GAMES = {};
+
+var uni = new Unique(10);
+
+
+
+
+
+
+var GameSocketHandler = (function(){
 	var me = {};
 
-	var requests = {}, uni = new Unique();
+	me.listen = function(profile, game){
+		profile.on('play', function(data){
+			var playerID = profile.getField('socket');
+			var out = game.play(playerID, data.point);
+		});
 
-	me.request = function(id, params){
+		profile.on('pass', function(data){
+
+		});
+
+		profile.on('resign', function(data){
+
+		});
+	}
+
+	me.stopListen = function(profile){
 
 	}
 
 	return me;
 }());
-
-var ONLINE = new ProfileList();
-
-
-
-
-
-
-
 
 var app = http.createServer(function(req, res) {
 	var pars = url.parse(req.url),
@@ -294,6 +314,7 @@ var io = socketio.listen(app);
 
 io.sockets.on('connection', function(socket){
 	var profile = ONLINE.addSocket(socket);
+	profile.
 
 	var name,
 		next = ONLINE.iterator("name", "playing", "socket"),
@@ -314,9 +335,67 @@ io.sockets.on('connection', function(socket){
 
 	ONLINE.send('add_player', me);
 
-	socket.on('disconnect', function(){
+	profile.on('disconnect', function(){
 		ONLINE.removeSocket(socket);
 		ONLINE.send('take_player', me.socket);
+	});
+
+
+	profile.on('game_request', function(data){
+		var toke = uni.token();
+		REQUESTS[toke] = data;
+		data.toke = toke;
+
+		var targ = ONLINE.sid(data.target);
+		targ.on('game_accept', function(udata){
+			var pot = REQUESTS[udata.toke];
+			if(pot.target === socket.id){
+				delete REQUESTS[data.toke];
+				targ.off('game_accept');
+
+
+
+				/* Game Events */
+
+				var game = GAMES[data.toke] = new Game(
+						profile.uid,
+						targ.uid, 
+						data.parameters
+					),
+
+					// static so no cleaning necessary
+					players = new ProfilePair(profile, targ);
+
+				players.on('play', function(data, id){
+					var play = game.play(data.point, id);
+				});
+
+				players.on('pass', function(id){
+					var pass = game.pass(id);
+				});
+
+				players.on('resign', function(data, id){
+					var resign = game.resign(id);
+				});
+
+				players.on('request_undo', function(id){
+
+					var opp = players.byNotUid(id);
+					opp.on('accept_undo', function(id){
+						opp.off('accept_undo', 'decline_undo');
+
+						var undo = game.undo(id);
+					});
+
+					opp.on('decline_undo', function(id){
+						opp.off('accept_undo', 'decline_undo');
+					});
+				});
+
+				/////////////////
+			}
+		});
+		targ.send('game_request', data);
 	});
 });
 

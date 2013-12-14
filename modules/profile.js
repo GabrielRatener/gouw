@@ -1,17 +1,27 @@
+var unique = new unique();
+
 function Profile(socket){
 	this.__socket = socket;
 
 	this.__info = {
 		"socket": socket,
 		"playing": false,
-		"name": Names.uniqueName()
+		"name": Names.uniqueName(),
+		"secret": unique.token();
 	};
 
 	this.__ghost = false;
 }
 
 Profile.prototype = (function(){
-	var me = {};
+	var me = {
+		get uid(){
+			return this.__socket.id;
+		},
+		set uid(val){
+			console.log("read only");
+		}
+	};
 
 	me.takeMe = function(){
 		return this.__ghost;
@@ -19,6 +29,7 @@ Profile.prototype = (function(){
 
 	me.erase = function(){
 		this.__ghost = true;
+		unique.free(this.__info.secret);
 		return this.__ghost;
 	}
 

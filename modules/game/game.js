@@ -153,7 +153,7 @@ Game.prototype = (function(){
 
 	}
 
-	me.play = function(point){
+	me.play = function(id, pt){
 		// validate move..
 
 
@@ -164,11 +164,11 @@ Game.prototype = (function(){
 
 	}
 
-	me.pass = function(){
+	me.pass = function(id){
 
 	}
 
-	me.resign = function(){
+	me.resign = function(id){
 
 	}
 

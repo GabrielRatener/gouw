@@ -19,31 +19,32 @@ function ProfileList(){
 
 	this.__profs = profs;
 
-	var me = this;
-	Object.defineProperty(this, 'length', {
-		get:function(){
-			return me.__profs.length;
-		},
-		set:function(too){
-			console.error("read only");
-		}
-	});
-
-	this.__sweeper = setInterval(function(){
+	if(!isstatic) this.__sweeper = setInterval(function(){
 		thethis.__cleanList();
 	}, 60000);
 }
 
 ProfileList.prototype = (function(){
-	var me = {};
+	var me = {
+		get length(){
+			return me.__profs.length;
+		},
+		set length(val){
+			console.log("read only");
+		}
+	};
 
-	me.__cleanList = function(){
+	me.cleanList = function(delay){
 		var i = 0;
 		while(this.__profs[i]){
 			if(this.__profs[i].takeMe()){
 				this.__profs.splice(i, 1);
 			}else i++;
 		}
+
+		if (delay) process.setTimeout(function(){
+			me.cleanList(delay)
+		}, delay);
 
 		return true;
 	}
@@ -78,7 +79,10 @@ ProfileList.prototype = (function(){
 
 	me.on = function(evt, func){
 		for (var i = 0; i < this.__profs.length; i++) {
-			this.__profs[i].on(evt, func);
+			var prof = his.__profs[i];
+			prof.on(evt, function(data){
+				func(data, prof.uid);
+			});
 		}
 	}
 
