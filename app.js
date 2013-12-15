@@ -286,7 +286,7 @@ var app = http.createServer(function(req, res) {
 				var pat = "public/" + file.join("/");
 			}
 
-			fsy.readFile(__dirname + pat, function (err, data) {
+			fsy.readFile(__dirname + "/" + pat, function (err, data) {
 				if (err) {
 					res.writeHead(500);
 					res.end('Error loading: ' + path);
