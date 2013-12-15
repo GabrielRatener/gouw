@@ -1,0 +1,150 @@
+<html>
+	<head>
+		<script type="text/javascript" src="socket.io/socket.io.js"></script>
+		<title>GOUW</title>
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+	</head>
+	<body>
+		<h3 id="title"><!-- title --></h3>
+		<ul id="users">
+			<!-- gets filled with list of users -->
+		</ul>
+		<div id="game">
+			<!-- all genneral stuff goes here -->
+
+			<!-- canvas appears when game has been aggreed to -->
+			<canvas id="board"></canvas>
+
+			<!-- appears initially -->
+			<form id="parameters">
+			</form>
+		</div>
+		<script type="text/javascript">
+			(function(){
+				var MY_NAME, MY_ID;
+
+				var Title = (function(){
+					var me = {};
+
+					var TITLE = document.querySelector("#title"), naaaame;
+					
+					Object.defineProperty(me, "value", {
+						"get": function(){
+							return naaaame;
+						},
+						"set": function(val){
+							var tx = document.createTextNode(val);
+							TITLE.appendChild(tx);
+							naaaame = val;
+						}
+					});
+
+					return me;
+				}());
+
+				var Users = (function(){
+					var me = {};
+					var USERS = document.querySelector("#users");
+
+					function listItem(info){
+						var el = document.createElement("li");
+						el.setAttribute("id", 'i' + info.socket);
+						if(info.playing) el.setAttribute("class", "playing");
+
+						el.innerHTML = info.name;
+
+						return el;
+					}
+
+					me.add = function(obj){
+						if(obj instanceof Array){
+							for(var i = 0; i < obj.length; i++){
+								me.add(obj[i]);
+							}
+						}else{
+							var el = listItem(obj);
+							USERS.appendChild(el);
+						}
+					}
+
+					me.erase = function(id){
+						var li = USERS.querySelector('#i' + id);
+						USERS.removeChild(li);
+
+						return true;
+					}
+
+					return me;
+				}());
+
+				//namespace Display
+				/*
+				var Game = (function(){
+					var me = {};
+					var DISPLAY = document.querySelector("#display"),
+						LIST = document.querySelector("#hand");
+
+					var YourHand = (function(){
+						var me = {};
+
+						var LIST = document.querySelector("#yourhand");
+
+						return me;
+					}());
+
+					var MyHand = (function(){
+						var me = {};
+
+						var LIST = document.querySelector("myhand#");
+
+						return me;
+					}());
+
+					var IMG_URL = "cards/";
+
+					// all protected functions go here
+
+					function cardView(type){
+						var el = document.createElement("li");
+						el.attribute({
+							"class": "cardview"
+						});
+
+						var image = new Image();
+						image.src = IMG_URL + type;
+
+						el.appendChild(image);
+						return el;
+					}
+
+					me.match = function(opponent){
+						var turn = false, hand = [];
+
+						SOCKET.removeEventListener('play');
+						SOCKET.on('play', function(data){
+							opponent
+						});
+					}
+
+					return me;
+				}());
+				*/
+
+				var SOCKET = io.connect('http://' + document.location.hostname);
+				SOCKET.on('info', function(info){
+					Title.value = MY_NAME = info.me.name;
+					MY_ID = info.me.socket;
+					Users.add(info.online);
+				});
+
+				SOCKET.on('add_player', function(data){
+					Users.add(data);
+				});
+
+				SOCKET.on('take_player', function(pid){
+					Users.erase(pid);
+				});
+			}());
+		</script>
+	</body>
+</html>

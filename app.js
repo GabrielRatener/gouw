@@ -26,7 +26,7 @@ Array.prototype.contains = function(val, strict){
 
 Array.prototype.clean = function(){
 	var args = [];
-	for (var i = 0; i < arguments.le)ngth; i++) {
+	for (var i = 0; i < arguments.length; i++) {
 		args.push(arguments[i]);
 	}
 
@@ -62,8 +62,8 @@ var http = require('http'),
 var Unique = require('./modules/unique'),
 	Profile = require('./modules/profile'),
 	ProfileList = require('./modules/profile_list'),
-	ProfilePair = require('./modules/profile_pair'),
-	Game = require('./modules/game/game');
+	ProfilePair = require('./modules/profile_pair');
+	//Game = require('./modules/game/game');
 
 
 var Names = (function(){
@@ -316,7 +316,6 @@ var app = http.createServer(function(req, res) {
 var io = socketio.listen(app);
 io.sockets.on('connection', function(socket){
 	var profile = ONLINE.addSocket(socket);
-	profile.
 
 	var name,
 		next = ONLINE.iterator("name", "playing", "socket"),
@@ -372,7 +371,7 @@ io.sockets.on('connection', function(socket){
 					var play = game.play(data.point, id);
 
 
-					players.send('play', );
+					players.send('play', play);
 				});
 
 				players.on('pass', function(id){

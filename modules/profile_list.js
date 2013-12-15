@@ -18,10 +18,6 @@ function ProfileList(){
 	}
 
 	this.__profs = profs;
-
-	if(!isstatic) this.__sweeper = setInterval(function(){
-		thethis.__cleanList();
-	}, 60000);
 }
 
 ProfileList.prototype = (function(){
@@ -42,7 +38,7 @@ ProfileList.prototype = (function(){
 			}else i++;
 		}
 
-		if (delay) process.setTimeout(function(){
+		if (delay) setTimeout(function(){
 			me.cleanList(delay)
 		}, delay);
 

@@ -1,13 +1,10 @@
-var unique = new unique();
-
 function Profile(socket){
 	this.__socket = socket;
 
 	this.__info = {
 		"socket": socket,
 		"playing": false,
-		"name": Names.uniqueName(),
-		"secret": unique.token();
+		"name": Names.uniqueName()
 	};
 
 	this.__ghost = false;
@@ -29,7 +26,6 @@ Profile.prototype = (function(){
 
 	me.erase = function(){
 		this.__ghost = true;
-		unique.free(this.__info.secret);
 		return this.__ghost;
 	}
 
