@@ -26,6 +26,7 @@ ProfilePair.prototype = (function(){
 	}
 
 	me.off = function(evt){
+	
 		this.__array.foreach(function(item){
 			item.off(evt);
 		});
