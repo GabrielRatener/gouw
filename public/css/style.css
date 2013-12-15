@@ -1,0 +1,25 @@
+#title{
+
+}
+
+#users{
+	list-style-type: none;
+	display: block;
+	width: 200px;
+	margin: 5px;
+	padding: 5px;
+}
+
+#users li{
+	display: block;
+	padding: 5px;
+	font-family: arial;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 1px;
+	background-color: #FFCC99;
+}
+
+canvas#board{
+	display: none;
+}
