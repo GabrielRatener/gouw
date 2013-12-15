@@ -280,9 +280,10 @@ var app = http.createServer(function(req, res) {
 			res.end('Access forbidden');
 		}else{
 
-			if(!file) var pat = "public/index.html";
-			else{
-				var pat = "public/" + path.join("/");
+			if(!file){
+				var pat = "public/index.html";
+			}else{
+				var pat = "public/" + file.join("/");
 			}
 
 			fsy.readFile(__dirname + pat, function (err, data) {
