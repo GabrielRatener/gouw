@@ -264,35 +264,36 @@ var uni = new Unique(10);
 
 
 
-var GameSocketHandler = (function(){
-	var me = {};
-
-	me.listen = function(profile, game){
-		profile.on('play', function(data){
-			var playerID = profile.getField('socket');
-			var out = game.play(playerID, data.point);
-		});
-
-		profile.on('pass', function(data){
-
-		});
-
-		profile.on('resign', function(data){
-
-		});
-	}
-
-	me.stopListen = function(profile){
-
-	}
-
-	return me;
-}());
 
 var app = http.createServer(function(req, res) {
 	var pars = url.parse(req.url),
 		path = pars.pathname;
 
+	var file = pars.pathname.split("/").clean("");
+
+	if(file[0] === "virtual"){
+
+	}else{
+		if(file.contains("~", "..", ".", "/")){
+			res.writeHead(403);
+			res.end('Access forbidden');
+		}else{
+			path.shift("public");
+			fsy.readFile(__dirname + path.join("/"), function (err, data) {
+				if (err) {
+					res.writeHead(500);
+					res.end('Error loading: ' + path);
+				}
+
+				res.writeHead(200);
+				res.end(data);
+			});
+		}
+	}
+
+
+	// more primitive server
+	/*
 	if(["", "/"].indexOf(path) >= 0) path = '/index.html';
 	if(path.indexOf("..") < 0){
 		fsy.readFile(__dirname + path, function (err, data) {
@@ -306,12 +307,13 @@ var app = http.createServer(function(req, res) {
 		});
 	}else{
 		res.writeHead(403);
-		return res.end('Access forbidden');
+		res.end('Access forbidden');
 	}
+	*/
 }).listen(80);
+
+
 var io = socketio.listen(app);
-
-
 io.sockets.on('connection', function(socket){
 	var profile = ONLINE.addSocket(socket);
 	profile.
