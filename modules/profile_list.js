@@ -1,6 +1,6 @@
-function ProfileList(){
-	var thethis = this;
+var Profile = require("./profile");
 
+function ProfileList(){
 	if(arguments.length === 1){
 		var profs = arguments[0];
 	}else{
@@ -9,15 +9,14 @@ function ProfileList(){
 			profs.push(arguments[i]);
 		}
 	}
+	this.__profs = profs;
 
 	//var profileHash = new SmartHash();
 	this.__profileHash = {};
 	for (var i = 0; i < profs.length; i++) {
-		var sock = profs[i].getField("socket");
+		var sock = profs[i].uid;
 		this.__profileHash[sock] = profs[i];
 	}
-
-	this.__profs = profs;
 }
 
 ProfileList.prototype = (function(){
@@ -30,7 +29,7 @@ ProfileList.prototype = (function(){
 		}
 	};
 
-	me.cleanList = function(delay){
+	me.clean = function(delay){
 		var i = 0;
 		while(this.__profs[i]){
 			if(this.__profs[i].takeMe()){
@@ -38,8 +37,9 @@ ProfileList.prototype = (function(){
 			}else i++;
 		}
 
+		var that = this;
 		if (delay) setTimeout(function(){
-			me.cleanList(delay)
+			that.clean(delay);
 		}, delay);
 
 		return true;
