@@ -10,14 +10,22 @@ Array.prototype.process = function(func){
 	return rett;
 }
 
-Array.prototype.contains = function(val, strict){
-	if(strict){
-		for (var i = 0; i < this.length; i++) {
-			if(this[i] === val) return true;
+Array.prototype.contains2 = function(){
+
+	for (var i = 0; i < this.length; i++) {
+		for(var j = 0; j < arguments.length; j++){
+			if(this[i] == arguments[j]) return true;		
 		}
-	}else{
-		for (var i = 0; i < this.length; i++) {
-			if(this[i] == val) return true;
+	}
+
+	return false;
+}
+
+Array.prototype.contains = function(){
+
+	for (var i = 0; i < this.length; i++) {
+		for(var j = 0; j < arguments.length; j++){
+			if(this[i] === arguments[j]) return true;				
 		}
 	}
 
@@ -32,7 +40,7 @@ Array.prototype.clean = function(){
 
 	var i = 0;
 	while(i < this.length){
-		if(this[i] in args){
+		if(args.contains(this[i])){
 			this.splice(i, 1);
 		}else i++;
 	}
@@ -66,192 +74,10 @@ var Unique = require('./modules/unique'),
 	//Game = require('./modules/game/game');
 
 
-var Names = (function(){
-	var me = {};
-
-	var NOUNS = [
-		"noodle",
-		"centrifuge",
-		"home",
-		"store",
-		"war",
-		"cold",
-		"system",
-		"book",
-		"trick",
-		"airplane",
-		"jet",
-		"isentrope",
-		"volcano",
-		"shirt",
-		"whisper",
-		"gradient",
-		"slope",
-		"whale",
-		"cloud",
-		"potato",
-		"cyclone",
-		"layer",
-		"surface",
-		"blimp",
-		"helicopter",
-		"zebra",
-		"nautilus",
-		"smoothie",
-		"tornado",
-		"phone",
-		"equation",
-		"drug",
-		"race",
-		"crest",
-		"planet",
-		"orbit",
-		"star",
-		"emission",
-		"typo",
-		"glow",
-		"storm",
-		"soap",
-		"strawberry",
-		"guava",
-		"fig",
-		"ficus",
-		"stone",
-		"door",
-		"crab",
-		"clam",
-		"lamp",
-		"spider",
-		"viper",
-		"chicken"
-	];
-
-	var ADJECTIVES = [
-		"wasteful",
-		"distasteful",
-		"barotropic",
-		"volcanic",
-		"isotropic",
-		"windy",
-		"long",
-		"juicy",
-		"slender",
-		"spicy",
-		"sweet",
-		"slimy",
-		"snowy",
-		"humid",
-		"african",
-		"american",
-		"opaque",
-		"transparent",
-		"happy",
-		"ethical",
-		"unethical",
-		"chewy",
-		"sleek",
-		"bright",
-		"dull",
-		"alternate",
-		"grueling",
-		"fierce",
-		"tropical",
-		"subtropical",
-		"polar",
-		"incorrect",
-		"awesome",
-		"intense",
-		"curvy",
-		"coy",
-		"brave",
-		"delightful",
-		"insightful",
-		"intellectual",
-		"anonymous",
-		"crazy",
-		"drastic",
-		"legal",
-		"liquid",
-		"icy",
-		"grumpy",
-		"brute",
-		"peachy",
-		"scarce",
-		"frozen",
-		"happy"
-	];
-
-	var stash = (function(){
-		var me = {};
-
-		var reserved = [];
-
-		me.reserve = function(name){
-			if(name in reserved){
-				return false;
-			}else{
-				reserved.push(name);
-				return true;
-			}
-		}
-
-		me.taken = function(name){
-			return (name in reserved);
-		}
-
-		me.free = function(name){
-			if(name in reserved){
-				return false;
-			}else{
-				var index = reserved.indexOf(name);
-				reserved.splice(index, 1);
-				return true;
-			}
-		}
-
-		return me;
-	}());
-
-	function randomNoun(){
-		var index = Math.floor(NOUNS.length * Math.random());
-		return NOUNS[index];
-	}
-
-	function randomAdjective(){
-		var index = Math.floor(ADJECTIVES.length * Math.random());
-		return ADJECTIVES[index];
-	}
-
-	me.uniqueName = function(){
-		do{
-			var same = Math.floor(2 * Math.random());
-			if(same){
-				var n1 = randomNoun();
-				do{
-					var n2 = randomNoun();
-				}while(n1 === n2);
-			}else{
-				var n1 = randomAdjective(),
-					n2 = randomNoun();
-			}
-
-			var name = n1 + " " + n2;
-		}while(stash.taken(name));
-
-		stash.reserve(name);
-		return name;
-	}
-
-	me.freeName = function(name){
-		stash.free(name);
-	}
-
-	return me;
-}());
 
 //create new list and have it cleaned every minute
 var ONLINE = new ProfileList();
-ONLINE.cleanList(60000);
+ONLINE.clean(5000);
 
 var REQUESTS = {};
 
@@ -267,10 +93,9 @@ var uni = new Unique(10);
 
 var app = http.createServer(function(req, res) {
 	var pars = url.parse(req.url),
-		path = pars.pathname;
+		file = pars.pathname.split("/");
 
-	var file = pars.pathname.split("/");
-	file.clean();
+	file.clean("");
 
 	if(file[0] === "virtual"){
 
@@ -280,16 +105,20 @@ var app = http.createServer(function(req, res) {
 			res.end('Access forbidden');
 		}else{
 
-			if(!file){
+			if(!file.length){
+				console.log("hooplay");
 				var pat = "public/index.html";
 			}else{
 				var pat = "public/" + file.join("/");
 			}
 
+			console.log(file);
+			console.log(__dirname + "/" + pat);
+
 			fsy.readFile(__dirname + "/" + pat, function (err, data) {
 				if (err) {
 					res.writeHead(500);
-					res.end('Error loading: ' + path);
+					res.end('Error loading: ' + pat);
 				}else{
 					res.writeHead(200);
 					res.end(data);
@@ -336,18 +165,10 @@ io.sockets.on('connection', function(socket){
 		"socket": profile.getField("socket")
 	};
 
-	profile.send('info', {
-		"online": players,
-		"me": me
-	});
-
-	ONLINE.send('add_player', me);
-
 	profile.on('disconnect', function(){
 		ONLINE.removeSocket(socket);
 		ONLINE.send('take_player', me.socket);
 	});
-
 
 	profile.on('game_request', function(data){
 		var toke = uni.token();
@@ -423,5 +244,14 @@ io.sockets.on('connection', function(socket){
 		});
 		targ.send('game_request', data);
 	});
+
+
+	profile.send('info', {
+		"online": players,
+		"me": me
+	});
+
+	ONLINE.send('add_player', me);
+
 });
 
