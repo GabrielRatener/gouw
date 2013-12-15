@@ -269,7 +269,8 @@ var app = http.createServer(function(req, res) {
 	var pars = url.parse(req.url),
 		path = pars.pathname;
 
-	var file = pars.pathname.split("/").clean("");
+	var file = pars.pathname.split("/");
+	file.clean();
 
 	if(file[0] === "virtual"){
 
@@ -278,15 +279,20 @@ var app = http.createServer(function(req, res) {
 			res.writeHead(403);
 			res.end('Access forbidden');
 		}else{
-			path.shift("public");
-			fsy.readFile(__dirname + path.join("/"), function (err, data) {
+
+			if(!file) var pat = "public/index.html";
+			else{
+				var pat = "public/" + path.join("/");
+			}
+
+			fsy.readFile(__dirname + pat, function (err, data) {
 				if (err) {
 					res.writeHead(500);
 					res.end('Error loading: ' + path);
+				}else{
+					res.writeHead(200);
+					res.end(data);
 				}
-
-				res.writeHead(200);
-				res.end(data);
 			});
 		}
 	}
