@@ -368,28 +368,46 @@ io.sockets.on('connection', function(socket){
 
 				players.on('play', function(data, id){
 					var play = game.play(data.point, id);
+
+
+					players.send('play', );
 				});
 
 				players.on('pass', function(id){
 					var pass = game.pass(id);
+
+
+					players.send('pass', pass);
 				});
 
 				players.on('resign', function(data, id){
 					var resign = game.resign(id);
+
+
+					players.send('resign', resign);
 				});
 
 				players.on('request_undo', function(id){
 
-					var opp = players.byNotUid(id);
+					var mee = players.byUid(id),
+						opp = players.byNotUid(id);
+
 					opp.on('accept_undo', function(id){
-						opp.off('accept_undo', 'decline_undo');
+						opp.off('accept_undo');
+						opp.off('decline_undo');
 
 						var undo = game.undo(id);
+						players.send('undo', undo);
 					});
 
 					opp.on('decline_undo', function(id){
-						opp.off('accept_undo', 'decline_undo');
+						opp.off('accept_undo');
+						opp.off('decline_undo', false);
+
+						mee.send('undo', false);
 					});
+
+
 				});
 
 				/////////////////
