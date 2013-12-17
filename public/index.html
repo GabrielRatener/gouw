@@ -3,21 +3,28 @@
 		<script type="text/javascript" src="socket.io/socket.io.js"></script>
 		<title>GOUW</title>
 		<link rel="stylesheet" type="text/css" href="css/style.css">
+		<script type="text/javascript" src="js/board.js"></script>
 	</head>
 	<body>
 		<h3 id="title"><!-- title --></h3>
-		<ul id="users">
-			<!-- gets filled with list of users -->
-		</ul>
-		<div id="game">
-			<!-- all genneral stuff goes here -->
+		<div id="everything_wrapper">
+			<div id="sidebar">
+				<ul id="users">
+					<!-- gets filled with list of users -->
+				</ul>
 
-			<!-- canvas appears when game has been aggreed to -->
-			<canvas id="board"></canvas>
+			</div>
+			<div id="game">
+				<!-- all genneral stuff goes here -->
 
-			<!-- appears initially -->
-			<form id="parameters">
-			</form>
+				<!-- canvas appears when game has been aggreed to -->
+				<div id="board_wrapper">
+				</div>
+
+				<!-- appears initially -->
+				<form id="parameters">
+				</form>
+			</div>
 		</div>
 		<script type="text/javascript">
 			(function(){
@@ -145,6 +152,19 @@
 					Users.erase(pid);
 				});
 			}());
+
+			var board = new Board(
+				document.querySelector("#board_wrapper"),
+				{
+					"size": [9, 9]
+				}
+			);
+
+			board.ontilehover = function(pt){
+				this.putGhost(pt, 1);
+			}
+
+
 		</script>
 	</body>
 </html>
