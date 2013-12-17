@@ -64,6 +64,12 @@ function Board(container, params){
 Board.prototype = (function(){
 	var me = {};
 
+	var stars = {
+		"9x9": [2, 5, 7],
+		"13x13": [3, 6, 9],
+		"19x19": [3, 9, 15]
+	};
+
 	me.__clear = function(pt){
 		if(pt) {
 			var w = this.__dimensions[0] / this.__spaces[0],
@@ -118,6 +124,21 @@ Board.prototype = (function(){
 			x,
 			y
 		]);
+	}
+
+	me.__dot = function(pt){
+		var w = this.__dimensions[0] / this.__spaces[0],
+			h = this.__dimensions[1] / this.__spaces[1],
+			x = (pt[0] + 0.5) * w,
+			y = (pt[1] + 0.5) * h,
+			r = 0.1 * Math.min(w, h),
+			cc = this.__back.context;
+
+		cc.fillStyle = "#000";
+		cc.beginPath();
+		cc.arc(x, y, r, 0, 2 * Math.PI);
+		cc.closePath();
+		cc.fill();
 	}
 
 	me.__circle = function(pt, color){
@@ -188,6 +209,20 @@ Board.prototype = (function(){
 		bc.stroke();
 
 		this.__dimensions = [width, height];
+
+		if(stars.hasOwnProperty(hn + "x" + vn)){
+			var dots = stars[hn + "x" + vn];
+			for (var i = 0; i < dots.length; i++) {
+				for(var j = 0; j < dots.length; j++){
+					var pt = [
+						dots[i],
+						dots[j]
+					];
+
+					this.__dot(pt);
+				}
+			}
+		}
 	}
 
 	return me;
