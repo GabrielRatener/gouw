@@ -94,6 +94,11 @@ Game.prototype = (function(){
 		return array;
 	}
 
+	me.dimensions = function(){
+		var o = this.__options;
+		return [o.width, o.height];
+	}
+
 	me.validate = function(point, color){
 
 		// make sure space is empty
@@ -125,7 +130,7 @@ Game.prototype = (function(){
 					place = adjacent[index],
 					lastt = this.__turns[this.__turns.length - 1];
 
-				if(lastt.added.contains(place) && last.removed.contains(point)){
+				if(lastt.added.contains(place) && lastt.removed.contains(point)){
 					return false;
 				}
 			}
@@ -154,17 +159,61 @@ Game.prototype = (function(){
 	}
 
 	me.play = function(id, pt){
+		var turn = this.__turn;
+		if(this.__players[turn] !== id){
+			return false;
+		}
 		// validate move..
 
-
+		var valid = this.validate(pt, turn);
+		if(!valid){
+			return false;
+		}
 
 		// if valid: 
-		var stone = new Stone(this.__turn);
-		stone.place(point);
+		var stone = new Stone(turn);
+		stone.place(pt);
 
+		var adj = me.adjacent(pt),
+			maxSize = 0,
+			maxIndex = 0,
+			myGroups = [],
+			identifiers = [];
+
+		for (var i = 0; i < adj.length; i++) {
+			var is = adj[i].is();
+			if(![0, 1].contains(is)){
+				continue;
+			}
+				
+			var group = adj[i].group(),
+				id = group.getId();
+
+			if(!identifiers.contains(id)){
+				if(is === turn){
+					var size = group.size();
+					if (size > maxSize){
+						maxSize = size;
+						maxIndex = myGroups.length;
+					}
+
+					myGroups.push(group);	
+				}else group.takeLiberty();
+
+				identifiers.push(id);
+			}
+		}
+
+		var winner = myGroups.splice(maxIndex, 1);
+		winner.addStone(stone);
+		winner.mergeGroups(myGroups);
 	}
 
 	me.pass = function(id){
+		if(this.__players[this.__turn] !== id){
+			return false;
+		}
+ 
 
 	}
 

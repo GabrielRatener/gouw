@@ -65,8 +65,10 @@ Board.prototype = (function(){
 	var me = {};
 
 	var stars = {
+
+		// triples' values represent both x, and y star positions
 		"9x9": [2, 5, 7],
-		"13x13": [3, 6, 9],
+		"13x13": [2, 6, 10],
 		"19x19": [3, 9, 15]
 	};
 
@@ -149,6 +151,7 @@ Board.prototype = (function(){
 			r = 0.45 * Math.min(w, h),
 			cc = this.__front.context;
 
+		this.__clear(pt);
 		cc.fillStyle = color;
 		cc.beginPath();
 		cc.arc(x, y, r, 0, 2 * Math.PI);
@@ -163,8 +166,15 @@ Board.prototype = (function(){
 	}
 
 	me.putGhost = function(pt, color){
+		if(color === undefined){
+			color = this.__color;
+		}
 		var bow = (!!color) ? "rgba(255,255,255, 0.5)" : "rgba(0,0,0,0.5)";
 		this.__circle(pt, bow);
+	}
+
+	me.resetBoard = function(){
+		thisn
 	}
 
 	me.resetCanvas = function(){

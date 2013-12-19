@@ -1,6 +1,5 @@
 /* Gennerally useful methods for arrays */
 
-//element wise array addition
 Array.prototype.process = function(func){
 	var rett = [];
 	for (var i = 0; i < this.length; i++) {
@@ -21,6 +20,7 @@ Array.prototype.contains2 = function(){
 	return false;
 }
 
+// using === therefore gennerally better
 Array.prototype.contains = function(){
 
 	for (var i = 0; i < this.length; i++) {
@@ -30,6 +30,20 @@ Array.prototype.contains = function(){
 	}
 
 	return false;
+}
+
+Array.prototype.unique = function(func){
+	var fun = func || give;
+	var i = 0, passed = [];
+	while(i < this.length){
+		var rep = fun(this[i]);
+		if(rep in passed){
+			this.splice(i, 1);
+		}else{
+			passed.push(rep);
+			i += 1;
+		}
+	}
 }
 
 Array.prototype.clean = function(){
@@ -60,10 +74,15 @@ Array.prototype.histogram = function(){
 	return obj;
 }
 
+function give(arg){
+	return arg;
+}
+
 // modules
 var http = require('http'),
+	mime = require('mime'),
 	url = require('url'),
-	fsy = require('fs');
+	fsy = require('fs'),
 	socketio = require('socket.io');
 
 // constructors
@@ -90,7 +109,7 @@ var uni = new Unique(10);
 
 
 
-
+// http server
 var app = http.createServer(function(req, res) {
 	var pars = url.parse(req.url),
 		file = pars.pathname.split("/");
@@ -106,46 +125,26 @@ var app = http.createServer(function(req, res) {
 		}else{
 
 			if(!file.length){
-				console.log("hooplay");
 				var pat = "public/index.html";
 			}else{
 				var pat = "public/" + file.join("/");
 			}
-
-			console.log(file);
-			console.log(__dirname + "/" + pat);
 
 			fsy.readFile(__dirname + "/" + pat, function (err, data) {
 				if (err) {
 					res.writeHead(500);
 					res.end('Error loading: ' + pat);
 				}else{
-					res.writeHead(200);
+					var mtype = mime.lookup(pat);
+					res.writeHead(200, {
+						"Content-Length": data.length,
+						"Content-Type": mtype
+					});
 					res.end(data);
 				}
 			});
 		}
 	}
-
-
-	// more primitive server
-	/*
-	if(["", "/"].indexOf(path) >= 0) path = '/index.html';
-	if(path.indexOf("..") < 0){
-		fsy.readFile(__dirname + path, function (err, data) {
-			if (err) {
-				res.writeHead(500);
-				return res.end('Error loading: ' + path);
-			}
-
-			res.writeHead(200);
-			res.end(data);
-		});
-	}else{
-		res.writeHead(403);
-		res.end('Access forbidden');
-	}
-	*/
 }).listen(80);
 
 
