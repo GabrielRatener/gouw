@@ -1,11 +1,9 @@
-
-
 function adda(){
 	var lead = arguments[0], arr = [];
 	for (var i = 0; i < lead.length; i++) {
 		var sum = 0;
 		for(var j = 0; j < arguments.length; j++){
-			sum += arguments[j][i]
+			sum += arguments[j][i];
 		}
 
 		arr.push(sum);
@@ -13,6 +11,8 @@ function adda(){
 
 	return arr;
 }
+
+var Unique = require('../unique.js');
 
 function Game(players, options){
 	// players[0]: black, players[1]: white
@@ -41,11 +41,14 @@ function Game(players, options){
 	}
 	this.__board = board;
 
-	this.__turn = (!!opts.handicap) ? 1 : 0;
-
+	this.__turn = (!!opts.handicap) ? 0 : 1;
 	this.__turns = [];
 
-	this.__groups = {};
+	this.__captures = [0,0];
+
+	this.__unique = new Unique(10);
+
+	this.__nextMove();
 }
 
 Game.prototype = (function(){
@@ -59,15 +62,33 @@ Game.prototype = (function(){
 		[0, -1]
 	];
 
-	me.__record = function(point, group){
+	me.__nextMove = function(){
 		var bow = this.__turn;
 		this.__turns.push({
-			"color": this.__turn,
-			"point": point
+			"color": bow,
+			"played": [],
+			"captured": []
 		});
+
+		this.__turn = (!!bow) ? 0 : 1;
 	}
 
-	
+	me.__recordCapture = function(pt){
+		var turns = this.__turns,
+			index = turns.length - 1;
+
+		turns[index].captured.push(pt);
+		return true;
+	}
+
+	me.__recordPlay = function(pt){
+		var turns = this.__turns,
+			index = turns.length - 1;
+
+		turns[index].played.push(pt);
+		return true;
+	}
+
 	/* Information */
 
 	me.at = function(point){
@@ -83,7 +104,7 @@ Game.prototype = (function(){
 		return this.__board[point[0]][point[1]];
 	}
 
-	// returns 4 value array of adjacent points
+	// returns 4 value array of adjacent objects, or false, if
 	me.adjacent = function(point){
 		var array = [];
 		for (var i = 0; i < adjacent.length; i++) {
@@ -130,7 +151,7 @@ Game.prototype = (function(){
 					place = adjacent[index],
 					lastt = this.__turns[this.__turns.length - 1];
 
-				if(lastt.added.contains(place) && lastt.removed.contains(point)){
+				if(lastt.played.contains(place) && lastt.captured.contains(point)){
 					return false;
 				}
 			}
@@ -154,6 +175,38 @@ Game.prototype = (function(){
 
 	/* Commands */
 
+
+	me.capture = function(group){
+		var stone,
+			points,
+			color = group.color(),
+			ncolor = (!!color) ? 0 : 1,
+			nextStone = group.stoneIterator(),
+			notify = [];
+
+		while(stone = nextStone()){
+			var adj = stone.adjacent(ncolor),
+				place = stone.where();
+
+			this.__board[place[0]][place[1]] = new Empty(place, game);
+			this.__captures[color] += 1;
+			this.__recordCapture(place);
+
+			for (var i = 0; i < adj.length; i++) {
+				var group = adj[i].group();
+				if(!notify.contains(group)){
+					notify.push(group);
+				}
+			}
+		}
+
+		for (var i = 0; i < notify.length; i++) {
+			notify[i].calculateLiberties();
+		}
+	}
+
+	/* external commands */
+
 	me.undo = function(){
 
 	}
@@ -172,49 +225,18 @@ Game.prototype = (function(){
 
 		// if valid: 
 		var stone = new Stone(turn);
-		stone.place(pt);
+		this.__board[pt[0]][pt[1]] = stone;
+		stone.place(pt, game);
+		this.__recordPlay(pt);
+		this.__nextMove();
 
-		var adj = me.adjacent(pt),
-			maxSize = 0,
-			maxIndex = 0,
-			myGroups = [],
-			identifiers = [];
-
-		for (var i = 0; i < adj.length; i++) {
-			var is = adj[i].is();
-			if(![0, 1].contains(is)){
-				continue;
-			}
-				
-			var group = adj[i].group(),
-				id = group.getId();
-
-			if(!identifiers.contains(id)){
-				if(is === turn){
-					var size = group.size();
-					if (size > maxSize){
-						maxSize = size;
-						maxIndex = myGroups.length;
-					}
-
-					myGroups.push(group);	
-				}else group.takeLiberty();
-
-				identifiers.push(id);
-			}
-		}
-
-		var winner = myGroups.splice(maxIndex, 1);
-		winner.addStone(stone);
-		winner.mergeGroups(myGroups);
+		return true;
 	}
 
 	me.pass = function(id){
 		if(this.__players[this.__turn] !== id){
 			return false;
 		}
- 
-
 	}
 
 	me.resign = function(id){
