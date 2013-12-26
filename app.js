@@ -74,6 +74,25 @@ Array.prototype.histogram = function(){
 	return obj;
 }
 
+// Yay, recursion!!!
+// for use with array of objects (no falsy values)
+Array.prototype.iterator = function(filter){
+	var i = 0;
+	var next = function(){
+		if(i >= this.length){
+			return false;
+		}else{
+			var val = this[i];
+			i += 1;
+			if(filter(val)){
+				return val;
+			}else return next();
+		}
+	}
+
+	return next;
+}
+
 function give(arg){
 	return arg;
 }
@@ -90,7 +109,7 @@ var Unique = require('./modules/unique'),
 	Profile = require('./modules/profile'),
 	ProfileList = require('./modules/profile_list'),
 	ProfilePair = require('./modules/profile_pair');
-	//Game = require('./modules/game/game');
+	Game = require('./modules/game/game');
 
 
 
@@ -121,7 +140,7 @@ var app = http.createServer(function(req, res) {
 	}else{
 		if(file.contains("~", "..", ".", "/")){
 			res.writeHead(403);
-			res.end('Access forbidden');
+			res.end('Access forbidden\n');
 		}else{
 
 			if(!file.length){
@@ -174,16 +193,16 @@ io.sockets.on('connection', function(socket){
 		REQUESTS[toke] = data;
 		data.toke = toke;
 
-		var targ = ONLINE.sid(data.target);
+		var targ = ONLINE.bid(data.target);
 		targ.on('game_accept', function(udata){
 			var pot = REQUESTS[udata.toke];
-			if(pot.target === socket.id){
+			if(pot.target === targ.uid){
 				delete REQUESTS[data.toke];
 				targ.off('game_accept');
 
 
 
-				/* Game Events */
+				/* Game Events
 
 				var game = GAMES[data.toke] = new Game(
 						profile.uid,
@@ -192,13 +211,21 @@ io.sockets.on('connection', function(socket){
 					),
 
 					// static so no cleaning necessary
-					players = new ProfilePair(profile, targ);
+
+				*/
+				console.log(targ);
+				var players = new ProfilePair(profile, targ),
+					game = new Game(profile, targ);
 
 				players.on('play', function(data, id){
 					var play = game.play(data.point, id);
 
-
-					players.send('play', play);
+					if(play) players.send('play', {
+						"color": play.color,
+						"point": play.played[0],
+						"captures": play.captured,
+						"turn": play.turn
+					});
 				});
 
 				players.on('pass', function(id){
@@ -236,6 +263,10 @@ io.sockets.on('connection', function(socket){
 					});
 
 
+				});
+
+				players.send('new_game', {
+					"size": [19, 19]
 				});
 
 				/////////////////

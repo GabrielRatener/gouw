@@ -1,4 +1,5 @@
 function Board(container, params){
+	container.innerHTML = "";
 
 	this.__container = container;
 	this.__params = params;
@@ -155,7 +156,7 @@ Board.prototype = (function(){
 		cc.fill();
 	}
 
-	me.putStone = function(pt, color){
+	me.play = function(pt, color){
 		var bow = (!!color) ? "#FFF" : "#000";
 		this.__board[pt[0]][pt[1]] = true;
 		this.__circle(pt, bow, 1);
@@ -170,7 +171,12 @@ Board.prototype = (function(){
 	}
 
 	me.remove = function(places){
+		for (var i = 0; i < places.length; i++) {
+			var pt = places[i];
 
+			this.__board[pt[0]][pt[1]] = false;
+			this.__clear(pt, 1);
+		}
 	}
 
 	me.resetCanvas = function(){

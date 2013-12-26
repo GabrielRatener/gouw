@@ -12,7 +12,9 @@ function adda(){
 	return arr;
 }
 
-var Unique = require('../unique.js');
+var Empty = require('./empty.js'),
+
+	Unique = require('../unique.js');
 
 function Game(players, options){
 	// players[0]: black, players[1]: white
@@ -67,7 +69,8 @@ Game.prototype = (function(){
 		this.__turns.push({
 			"color": bow,
 			"played": [],
-			"captured": []
+			"captured": [],
+			"turn": this.__turns.length
 		});
 
 		this.__turn = (!!bow) ? 0 : 1;
@@ -87,6 +90,18 @@ Game.prototype = (function(){
 
 		turns[index].played.push(pt);
 		return true;
+	}
+
+	me.__getMoveBack = function(i){
+		return this.__turns[this.__turns.length - (2 + i)];
+	}
+
+	me.__getMoveAt = function(i){
+		return this.__turns[i];
+	}
+
+	me.unique = function(){
+		return this.__random.token();
 	}
 
 	/* Information */
@@ -230,7 +245,7 @@ Game.prototype = (function(){
 		this.__recordPlay(pt);
 		this.__nextMove();
 
-		return true;
+		return this.__getMoveBack(0);
 	}
 
 	me.pass = function(id){

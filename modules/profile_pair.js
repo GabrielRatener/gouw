@@ -1,6 +1,6 @@
 
 
-function ProfilePair(p1, p1){
+function ProfilePair(p1, p2){
 	this.__array = [p1, p2];
 	
 	this.__hash = {};
@@ -12,13 +12,13 @@ ProfilePair.prototype = (function(){
 	var me = {};
 
 	me.send = function(evt, data){
-		this.__array.foreach(function(item){
+		this.__array.forEach(function(item){
 			item.send(evt, data);
 		});
 	}
 
 	me.on = function(evt, func){
-		this.__array.foreach(function(item){
+		this.__array.forEach(function(item){
 			item.on(evt, function(data){
 				func(data, item.uid);
 			});
@@ -27,7 +27,7 @@ ProfilePair.prototype = (function(){
 
 	me.off = function(evt){
 	
-		this.__array.foreach(function(item){
+		this.__array.forEach(function(item){
 			item.off(evt);
 		});
 	}
@@ -44,3 +44,5 @@ ProfilePair.prototype = (function(){
 
 	return me;
 }());
+
+module.exports = ProfilePair;

@@ -201,6 +201,14 @@ Profile.prototype = (function(){
 		},
 		set uid(val){
 			console.log("read only");
+		},
+
+
+		get uname(){
+			return this.__socket.name;
+		},
+		set uname(val){
+			console.log("read only");
 		}
 	};
 
