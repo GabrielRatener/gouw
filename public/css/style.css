@@ -53,6 +53,7 @@ h3{
 	margin: 0px;
 	padding: 0px;
 	border: none;
+	cursor: pointer;
 }
 
 .board_container canvas{

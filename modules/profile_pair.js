@@ -9,7 +9,22 @@ function ProfilePair(p1, p2){
 }
 
 ProfilePair.prototype = (function(){
-	var me = {};
+	var me = {
+		get p1(){
+			return this.__array[0];
+		},
+		set p1(val){
+			console.log("read only property");
+		},
+
+
+		get p2(){
+			return this.__array[1];
+		},
+		set p2(val){
+			console.log("read only property");
+		}
+	};
 
 	me.send = function(evt, data){
 		this.__array.forEach(function(item){

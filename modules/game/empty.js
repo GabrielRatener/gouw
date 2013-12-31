@@ -5,8 +5,6 @@ function Empty(place, game){
 
 	this.__place = place;
 	this.__game = game;
-
-	this.__special = false;
 }
 
 Empty.prototype = (function(){

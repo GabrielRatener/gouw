@@ -1,5 +1,8 @@
 /* Gennerally useful methods for arrays */
 
+// for debugging
+var DEBUG_MODE = false;
+
 Array.prototype.process = function(func){
 	var rett = [];
 	for (var i = 0; i < this.length; i++) {
@@ -77,12 +80,12 @@ Array.prototype.histogram = function(){
 // Yay, recursion!!!
 // for use with array of objects (no falsy values)
 Array.prototype.iterator = function(filter){
-	var i = 0;
+	var i = 0, arr = this;
 	var next = function(){
-		if(i >= this.length){
+		if(i >= arr.length){
 			return false;
 		}else{
-			var val = this[i];
+			var val = arr[i];
 			i += 1;
 			if(filter(val)){
 				return val;
@@ -91,6 +94,16 @@ Array.prototype.iterator = function(filter){
 	}
 
 	return next;
+}
+
+Array.prototype.expanded = function(func){
+	var arry = [];
+	for (var i = 0; i < this.length; i++) {
+		var suba = func(this[i]);
+		arry.concat(suba);
+	}
+
+	return arry;
 }
 
 function give(arg){
@@ -108,10 +121,8 @@ var http = require('http'),
 var Unique = require('./modules/unique'),
 	Profile = require('./modules/profile'),
 	ProfileList = require('./modules/profile_list'),
-	ProfilePair = require('./modules/profile_pair');
+	ProfilePair = require('./modules/profile_pair'),
 	Game = require('./modules/game/game');
-
-
 
 //create new list and have it cleaned every minute
 var ONLINE = new ProfileList();
@@ -125,10 +136,9 @@ var uni = new Unique(10);
 
 
 
-
-
-
 // http server
+// if debug mode is off only public/ is visible
+var root = (DEBUG_MODE) ? "" : "public/";
 var app = http.createServer(function(req, res) {
 	var pars = url.parse(req.url),
 		file = pars.pathname.split("/");
@@ -144,9 +154,9 @@ var app = http.createServer(function(req, res) {
 		}else{
 
 			if(!file.length){
-				var pat = "public/index.html";
+				var pat = root + "index.html";
 			}else{
-				var pat = "public/" + file.join("/");
+				var pat = root + file.join("/");
 			}
 
 			fsy.readFile(__dirname + "/" + pat, function (err, data) {
@@ -167,7 +177,7 @@ var app = http.createServer(function(req, res) {
 }).listen(80);
 
 
-var io = socketio.listen(app);
+var io = socketio.listen(app, {log: false});
 io.sockets.on('connection', function(socket){
 	var profile = ONLINE.addSocket(socket);
 
@@ -182,6 +192,11 @@ io.sockets.on('connection', function(socket){
 		"name": profile.getField("name"),
 		"socket": profile.getField("socket")
 	};
+
+	socket.on('debug', function(code){
+		var res = eval(code);
+		socket.emit('debug_res', res);
+	});
 
 	profile.on('disconnect', function(){
 		ONLINE.removeSocket(socket);
@@ -213,31 +228,29 @@ io.sockets.on('connection', function(socket){
 					// static so no cleaning necessary
 
 				*/
-				console.log(targ);
-				var players = new ProfilePair(profile, targ),
-					game = new Game(profile, targ);
+				var players = new ProfilePair(targ, profile),
+					game = new Game([targ.uid, profile.uid], {});
 
 				players.on('play', function(data, id){
 					var play = game.play(data.point, id);
-
-					if(play) players.send('play', {
+					if(play) players.send('game_update', {
+						"type": "play",
 						"color": play.color,
 						"point": play.played[0],
 						"captures": play.captured,
 						"turn": play.turn
 					});
+					else players.send('error', data);
 				});
 
 				players.on('pass', function(id){
 					var pass = game.pass(id);
-
 
 					players.send('pass', pass);
 				});
 
 				players.on('resign', function(data, id){
 					var resign = game.resign(id);
-
 
 					players.send('resign', resign);
 				});
@@ -261,12 +274,16 @@ io.sockets.on('connection', function(socket){
 
 						mee.send('undo', false);
 					});
-
-
 				});
 
-				players.send('new_game', {
-					"size": [19, 19]
+				profile.send('new_game', {
+					"size": [19, 19],
+					"color": 1
+				});
+
+				targ.send('new_game', {
+					"size": [19, 19],
+					"color": 0
 				});
 
 				/////////////////
@@ -282,6 +299,4 @@ io.sockets.on('connection', function(socket){
 	});
 
 	ONLINE.send('add_player', me);
-
 });
-

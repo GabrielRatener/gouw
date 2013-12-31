@@ -51,6 +51,8 @@
 							hash[i] = func;
 						}
 					}
+
+					return true;
 				}
 			}
 
@@ -205,8 +207,9 @@
 				),
 				sync = syncFactory();
 
+				BOARD = board;
+
 				board.ontileclick = function(pt){
-					console.log("whooo!");
 					SOCKET.emit('play', {
 						"point": pt
 					});
@@ -219,7 +222,6 @@
 				SOCKET.on('game_update', function(data){
 
 					switch(data.type){
-
 					case "play":
 						sync(data.turn, function(){
 							board.play(data.point, data.color);

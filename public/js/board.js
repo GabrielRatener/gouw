@@ -70,15 +70,14 @@ Board.prototype = (function(){
 	};
 
 	me.__clear = function(pt, layer){
+
 		if(pt) {
 			var w = this.__dimensions[0] / this.__spaces[0],
 				h = this.__dimensions[1] / this.__spaces[1],
-				x0 = pt[0] * w,
-				y0 = pt[1] * h,
-				xf = (pt[0] + 1) * w,
-				yf = (pt[1] + 1) * h;
+				x = pt[0] * w,
+				y = pt[1] * h;
 
-			this.__layers[layer].context.clearRect(x0, y0, xf, yf);
+			this.__layers[layer].context.clearRect(x, y, w, h);
 		}else return false;
 	}
 
@@ -89,7 +88,7 @@ Board.prototype = (function(){
 			y = Math.floor(this.__spaces[1] * ev.y / dims[1]);
 
 		if(x >= dims[0]) x = dims[0] - 1;
-		if(y >= dims[0]) y = dims[0] - 1;
+		if(y >= dims[1]) y = dims[1] - 1;
 
 		if(x < 0) x = 0;
 		if(y < 0) y = 0;
@@ -97,10 +96,7 @@ Board.prototype = (function(){
 		var now = [x, y],
 			las = this.__last;
 		if(now !== las){
-			// todo: clear last
-			if(!!las && !this.__board[las[0]][las[1]]){
-				this.__clear(this.__last, 2);				
-			}
+			this.__clear(this.__last, 2);				
 
 			this.__last = now;
 			this.ontilehover(now);
@@ -114,7 +110,7 @@ Board.prototype = (function(){
 			y = Math.floor(this.__spaces[1] * ev.y / dims[1]);
 
 		if(x >= dims[0]) x = dims[0] - 1;
-		if(y >= dims[0]) y = dims[0] - 1;
+		if(y >= dims[1]) y = dims[1] - 1;
 
 		if(x < 0) x = 0;
 		if(y < 0) y = 0;
@@ -147,6 +143,7 @@ Board.prototype = (function(){
 			y = (pt[1] + 0.5) * h,
 			r = 0.45 * Math.min(w, h),
 			cc = this.__layers[layer].context;
+
 
 		this.__clear(pt, layer);
 		cc.fillStyle = color;
@@ -224,7 +221,7 @@ Board.prototype = (function(){
 
 		if(stars.hasOwnProperty(hn + "x" + vn)){
 			var dots = stars[hn + "x" + vn];
-			for (var i = 0; i < dots.length; i++) {
+			for (var i = 0; i < dots.length; i++){
 				for(var j = 0; j < dots.length; j++){
 					var pt = [
 						dots[i],

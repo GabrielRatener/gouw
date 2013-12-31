@@ -13,7 +13,7 @@ function adda(){
 }
 
 var Empty = require('./empty.js'),
-
+	Stone = require('./stone.js'),
 	Unique = require('../unique.js');
 
 function Game(players, options){
@@ -36,14 +36,13 @@ function Game(players, options){
 	for (var i = 0; i < opts.width; i++) {
 		board.push([]);
 		for(var j = 0; j < opts.height; j++){
-			var space = new Empty(i, j);
-			space.place([i,j]);
+			var space = new Empty([i, j], this);
 			board[i].push(space);
-		}	
+		}
 	}
 	this.__board = board;
 
-	this.__turn = (!!opts.handicap) ? 0 : 1;
+	this.__turn = (!!opts.handicap) ? 0 : 1;  // reversed when nextMove is called
 	this.__turns = [];
 
 	this.__captures = [0,0];
@@ -57,6 +56,35 @@ Game.prototype = (function(){
 
 	var me = Object.create(null);
 
+	var ether = (function(){
+		var me = {};
+
+		var nil = function(){};
+
+		me.is = function(){
+			return -5;
+		}
+
+		Object.defineProperty(me, 'id', {
+			"get": function(){
+				return "123ki78jb#";
+			}
+		});
+
+		Object.defineProperty(me, 'group', {
+			"get": function(){
+				return me;
+			}
+		});
+
+		me.updateAdjacentGroups = nil;
+		me.distanceTo = function(){
+			return 100;
+		}
+
+		return me;
+	}());
+
 	var adjacent = [
 		[-1, 0],
 		[0, 1],
@@ -65,15 +93,14 @@ Game.prototype = (function(){
 	];
 
 	me.__nextMove = function(){
-		var bow = this.__turn;
+		var bow = this.__turn = (!!this.__turn) ? 0 : 1;
+
 		this.__turns.push({
 			"color": bow,
 			"played": [],
 			"captured": [],
 			"turn": this.__turns.length
 		});
-
-		this.__turn = (!!bow) ? 0 : 1;
 	}
 
 	me.__recordCapture = function(pt){
@@ -101,18 +128,20 @@ Game.prototype = (function(){
 	}
 
 	me.unique = function(){
-		return this.__random.token();
+		return this.__unique.token();
 	}
 
 	/* Information */
 
 	me.at = function(point){
+		var opts = this.__options;
+
 		if(point[0] < 0 || point[0] >= opts.width){
-			return false;
+			return ether;
 		}
 
 		if(point[1] < 0 || point[1] >= opts.height){
-			return false;
+			return ether;
 		}
 
 		// if point is on board return point
@@ -197,26 +226,30 @@ Game.prototype = (function(){
 			color = group.color(),
 			ncolor = (!!color) ? 0 : 1,
 			nextStone = group.stoneIterator(),
+			notified = {},
 			notify = [];
 
 		while(stone = nextStone()){
 			var adj = stone.adjacent(ncolor),
 				place = stone.where();
 
-			this.__board[place[0]][place[1]] = new Empty(place, game);
+			this.__board[place[0]][place[1]] = new Empty(place, this);
 			this.__captures[color] += 1;
 			this.__recordCapture(place);
 
 			for (var i = 0; i < adj.length; i++) {
-				var group = adj[i].group();
-				if(!notify.contains(group)){
+				var group = adj[i].group,
+					id = group.id;
+
+				if(!notified[id]){
+					notified[id] = true;
 					notify.push(group);
 				}
 			}
 		}
 
 		for (var i = 0; i < notify.length; i++) {
-			notify[i].calculateLiberties();
+			notify[i].calculateLiberties(true);
 		}
 	}
 
@@ -226,22 +259,22 @@ Game.prototype = (function(){
 
 	}
 
-	me.play = function(id, pt){
+	me.play = function(pt, id){
 		var turn = this.__turn;
 		if(this.__players[turn] !== id){
 			return false;
 		}
 		// validate move..
-
+		/*
 		var valid = this.validate(pt, turn);
 		if(!valid){
 			return false;
 		}
-
+		*/
 		// if valid: 
 		var stone = new Stone(turn);
 		this.__board[pt[0]][pt[1]] = stone;
-		stone.place(pt, game);
+		stone.place(pt, this);
 		this.__recordPlay(pt);
 		this.__nextMove();
 

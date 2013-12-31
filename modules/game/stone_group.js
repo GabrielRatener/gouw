@@ -10,8 +10,6 @@ function StoneGroup(game, color){
 
 	this.__liberties = false;
 
-	this.__dimensions = game.dimensions();
-
 	this.__color = color;
 }
 
@@ -26,9 +24,10 @@ StoneGroup.prototype = (function(){
 	me.addStone = function(stone){
 		var members = this.__members,
 			adjacent = false;
-		if(members){
+
+		if(members.length){
 			for(var i = 0; i < members.length; i++){
-				var dist = members[i].distanceTo(stone);
+				var dist = members[i].distanceTo(stone);			
 				if(dist === 1){
 					adjacent = true;
 				}else if(dist === 0){
@@ -36,7 +35,8 @@ StoneGroup.prototype = (function(){
 				}
 			}
 
-			if(adjacent){
+			if(adjacent.length){
+
 				this.__addStone(stone);
 			}else return false;
 		}else{
@@ -44,6 +44,7 @@ StoneGroup.prototype = (function(){
 		}
 
 		this.crawl();
+
 		return true;
 	}
 
@@ -60,24 +61,24 @@ StoneGroup.prototype = (function(){
 			this.__members[i].crawl(hash, cluster);
 		}
 
-		for (var i = 0; i < cluster.length; i++) {
-			cluster[i].setGroup(this);
-			this.__members.push(cluster[i]);
+		for (var i = 0; i < cluster.length; i++){
+			this.__addStone(cluster[i]);
 		}
 
-		me.calculateLiberties();
+		this.calculateLiberties();
 	}
 
 	// calculates liberties of current group members;
-	me.calculateLiberties = function(){
+	// if capture is set to true the group will have itself captured if count is 0
+	me.calculateLiberties = function(capture){
 		var hash = {},
 			members = this.__members,
 			liberties = 0;
 
 		for(var i = 0; i < members.length; i++){
-			var adj = members.adjacent(5);
-			for(var j = 0; j < adj.length; j++){
-				var pn = adj[i].placeNumber();
+			var adj = members[i].adjacent(5);
+			for(var j = 0; j < adj.length; j++){	
+				var pn = adj[j].placeNumber();
 				if(hash.hasOwnProperty(pn)){
 					continue;
 				}else{
@@ -88,6 +89,11 @@ StoneGroup.prototype = (function(){
 		}
 
 		this.__liberties = liberties;
+
+		if(capture && liberties === 0){
+			this.__game.capture(this);
+		}
+
 		return liberties;
 	}
 
@@ -95,9 +101,9 @@ StoneGroup.prototype = (function(){
 		return this.__liberties;
 	}
 
-	me.takeLiberty = function(){
+	me.takeLiberty = function(capture){
 		this.__liberties -= 1;
-		if(this.__liberties === 0){
+		if(capture && this.__liberties === 0){
 			this.__game.capture(this);
 		}
 
@@ -112,13 +118,34 @@ StoneGroup.prototype = (function(){
 		var i = 0,
 			stones = this.__members;
 		return function(){
-			if(i >= stone.length){
+			if(i >= stones.length){
 				return false;
 			}else{
 				i += 1;
 				return stones[i - 1];
 			}
 		}
+	}
+
+	me.updateAdjacentGroups = function(capture){
+		var notified = {},
+			members = this.__members,
+			ocol = (this.__color) ? 0 : 1;
+
+		for(var i = 0; i < members.length; i++){
+			var aj = members[i].adjacent(ocol);
+			for (var j = 0; j < aj.length; j++) {
+				var group = aj[j].group,
+					id = group.id;
+
+				if(!notified[id]){
+					notified[id] = true;
+					group.calculateLiberties(capture);
+				}
+			}
+		}
+
+		return true;
 	}
 
 	me.hashable = function(){

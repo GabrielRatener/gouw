@@ -36,26 +36,36 @@ Stone.prototype = (function(){
 		var biggest,
 			maxSize = 0,
 			adj = this.adjacent(),
-			color = this.__color;
+			color = this.__color,
+			grouped = {},
+			groups = [];
 
 		for (var i = 0; i < adj.length; i++) {
 			if(!adj[i]){
 				continue;
 			}else{
-				var is = adj[i].is();
+				var is = adj[i].is(),
+					group = adj[i].group,
+					id = group.id;
 				if(is === color){
-					var size = adj[i].size();
+					var size = group.size();
 					if(size > maxSize){
 						maxSize = size;
-						biggest = adj[i];
+						biggest = group;
 					}
-				}else if([0, 1].contains(is)){
-					adj[i].calculateLiberties();
 				}
 			}
 		}
 
-		biggest.crawl();
+		if(false && biggest){
+			console.log("yayyyyyy");
+			biggest.crawl();
+
+		}else{
+			this.spawnGroup();
+		}
+
+		return this.group.updateAdjacentGroups(true);
 	}
 
 	me.spawnGroup = function(){
