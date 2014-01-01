@@ -21,10 +21,6 @@ Stone.prototype = (function(){
 		return this.__color;
 	}
 
-	me.where = function(){
-		return this.__place.splice(0);
-	}
-
 	me.place = function(place, game){
 		if(this.__place || this.__game){
 			return false;
@@ -57,10 +53,8 @@ Stone.prototype = (function(){
 			}
 		}
 
-		if(false && biggest){
-			console.log("yayyyyyy");
+		if(biggest){
 			biggest.crawl();
-
 		}else{
 			this.spawnGroup();
 		}

@@ -44,8 +44,8 @@ module.exports = (function(){
 		return !!this.__place;
 	}
 
-	me.place = function(){
-		return this.__place.splice(0);
+	me.where = function(){
+		return this.__place.slice(0);
 	}
 
 	me.is = function(){
@@ -57,7 +57,7 @@ module.exports = (function(){
 		var place = this.__place,
 			dims = this.__game.dimensions();
 		return place[0] * dims[1] + place[1];
-	}	
+	}
 
 	me.crawl = function(hash, cluster){
 		//object can be used instead of 
@@ -95,8 +95,8 @@ module.exports = (function(){
 	}
 
 	me.distanceTo = function(location, vectorForm){
-		var p1 = location.place(),
-			p2 = this.place();
+		var p1 = location.where(),
+			p2 = this.where();
 
 		var vector = [p2[0] - p1[0], p2[1] - p1[1]];
 		if(vectorForm){

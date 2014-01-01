@@ -1,7 +1,7 @@
 /* Gennerally useful methods for arrays */
 
 // for debugging
-var DEBUG_MODE = false;
+var DEBUG_MODE = true;
 
 Array.prototype.process = function(func){
 	var rett = [];
@@ -79,8 +79,9 @@ Array.prototype.histogram = function(){
 
 // Yay, recursion!!!
 // for use with array of objects (no falsy values)
-Array.prototype.iterator = function(filter){
-	var i = 0, arr = this;
+Array.prototype.iterator = function(filtre){
+	var i = 0, arr = this,
+		filter = filtre || function(val){return true;};
 	var next = function(){
 		if(i >= arr.length){
 			return false;
@@ -104,6 +105,30 @@ Array.prototype.expanded = function(func){
 	}
 
 	return arry;
+}
+
+Array.prototype.is = function(arr){
+	if(arr.length !== this.length) return false;
+
+	for(var i = 0; i < this.length; i++){
+		if(arr[i] !== this[i]){
+			return false;
+		}
+	}
+
+	return true;
+}
+
+Array.prototype.is2 = function(arr){
+	if(arr.length !== this.length) return false;
+
+	for(var i = 0; i < this.length; i++){
+		if(arr[i] != this[i]){
+			return false;
+		}
+	}
+
+	return true;
 }
 
 function give(arg){
@@ -145,7 +170,7 @@ var app = http.createServer(function(req, res) {
 
 	file.clean("");
 
-	if(file[0] === "virtual"){
+	if(file[0] === "q"){
 
 	}else{
 		if(file.contains("~", "..", ".", "/")){

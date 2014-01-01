@@ -77,9 +77,16 @@ Game.prototype = (function(){
 			}
 		});
 
-		me.updateAdjacentGroups = nil;
 		me.distanceTo = function(){
 			return 100;
+		}
+
+		me.size = function(){
+			return 1000;
+		}
+
+		me.liberties = function(){
+			return 1000;
 		}
 
 		return me;
@@ -168,53 +175,69 @@ Game.prototype = (function(){
 
 		// make sure space is empty
 		var now = this.at(point);
-		if(!now || now.is() !== "empty") return false;
+		if(now.is() !== 5) return false;
 
 		// if point is empty space
-		var ads = this.adjacent(point),
-			ncolor = (!!color) ? 0 : 1;
-			pcs = ads.process(function(pt){
-				return this.at(pt);
-			}),
-			freqs = pcs.process(function(object){
+		var ncolor = (!!color) ? 0 : 1,
+			adj = this.adjacent(point),
+			thiss = this,
+			freqs = adj.process(function(object){
 				return object.is();
 			}).histogram();
 
 
 		// test for ko
-		if(freqs[ncolor] === 4){
-			var libs = pcs.process(function(object){
-				if(object.size() === 1 && object.liberties() === 1){
+
+		//adjacents muste either be board edge (-5) or opposite color
+		if(!freqs[color] && !freqs[5]){
+			var libs = adj.process(function(object){
+				var o = object.group;
+				if(object.is() !== 5 && o.size() === 1 && o.liberties() === 1){
 					return 1;
 				}else return 0;
 			}),
 			freq = libs.histogram();
 
-			if(freq[0] === 1){
-				var index = freq.indexOf(1),
-					place = adjacent[index],
-					lastt = this.__turns[this.__turns.length - 1];
 
-				if(lastt.played.contains(place) && lastt.captured.contains(point)){
+			if(freq[1] === 1){
+				var index = libs.indexOf(1),
+					place = adj[index].where(),
+					lastt = this.__getMoveBack(0);
+
+				if(	
+					lastt.played.length === 1 && 
+					lastt.captured.length === 1 &&
+					lastt.played[0].is(place) && 
+					lastt.captured[0].is(point)
+				){
 					return false;
 				}
 			}
 		}
 
 		// if no ko, test for liberties
-		var finale = pcs.process(function(obj){
-			var is = obj.is();
-			if(is === color){
-				if(obj.group().liberties() > 1) return 0;
-				else return 1;
-			}else if(is === ncolor){
-				if(obj.group().liberties() > 1) return 1;
-				else return 0;
-			}else return 0;
-		}).histogram();
+		var place, nextPlace = adj.iterator(function(ob){
+			var is = ob.is();
+			return is !== -5;
+		});
+		while(place = nextPlace()){
+			var is = place.is();
 
-		if(finale[0]) return true;
-		else return false;
+			if(is === 5) return true;
+
+			var libs = place.group.liberties();
+			if(is === ncolor){
+				if(libs <= 1){
+					return true;
+				}
+			}else if(is === color){
+				if(libs > 1){
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/* Commands */
@@ -264,13 +287,13 @@ Game.prototype = (function(){
 		if(this.__players[turn] !== id){
 			return false;
 		}
+
 		// validate move..
-		/*
 		var valid = this.validate(pt, turn);
 		if(!valid){
 			return false;
 		}
-		*/
+		
 		// if valid: 
 		var stone = new Stone(turn);
 		this.__board[pt[0]][pt[1]] = stone;

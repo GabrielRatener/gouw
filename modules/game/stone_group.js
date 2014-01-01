@@ -136,7 +136,7 @@ StoneGroup.prototype = (function(){
 			var aj = members[i].adjacent(ocol);
 			for (var j = 0; j < aj.length; j++) {
 				var group = aj[j].group,
-					id = group.id;
+					id = group.hashable();
 
 				if(!notified[id]){
 					notified[id] = true;

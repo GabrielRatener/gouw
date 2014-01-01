@@ -1,6 +1,8 @@
+<!DOCTYPE html>
 <html>
 	<head>
-		<title>GOUW</title>
+		<!-- This is the debug page, for  -->
+		<title>GOUW - Debug</title>
 		<link rel="stylesheet" type="text/css" href="public/css/style.css" />
 		<style>
 
@@ -92,8 +94,9 @@
 
 			// Yay, recursion!!!
 			// for use with array of objects (no falsy values)
-			Array.prototype.iterator = function(filter){
-				var i = 0, arr = this;
+			Array.prototype.iterator = function(filtre){
+				var i = 0, arr = this,
+					filter = filtre || function(val){return true;};
 				var next = function(){
 					if(i >= arr.length){
 						return false;
@@ -119,30 +122,58 @@
 				return arry;
 			}
 
+			Array.prototype.is = function(arr){
+				if(arr.length !== this.length) return false;
 
-			var root = "";
+				for(var i = 0; i < this.length; i++){
+					if(arr[i] !== this[i]){
+						return false;
+					}
+				}
 
-			function require (path) {
-				var x = new XMLHttpRequest();
+				return true;
+			}
 
-				var module = {};
+			Array.prototype.is2 = function(arr){
+				if(arr.length !== this.length) return false;
+
+				for(var i = 0; i < this.length; i++){
+					if(arr[i] != this[i]){
+						return false;
+					}
+				}
+
+				return true;
+			}
+
+
+			var root = "", cache = {};
+
+			function require(path){
 
 				var url = cleanURL(root + path);
 
-				console.log("GET: " + url);
+				if(cache.hasOwnProperty(url)){
+					return cache[url];
+				}else{
+					var module = {};
+					var x = new XMLHttpRequest();
 
+					console.log("GET: " + url);
 
-				var troot = root;
-				root = getDir(url);
+					var troot = root;
+					root = getDir(url);
 
-				x.open("GET", url, false);
-				x.send();
-				
-				eval(x.responseText);
+					x.open("GET", url, false);
+					x.send();
+					
+					eval(x.responseText);
 
-				root = troot;
-				console.log(module);
-				return module.exports;
+					root = troot;
+
+					cache[url] = module.exports;
+					return module.exports;
+				}
 			}
 
 			function getDir(path){
@@ -222,7 +253,7 @@
 			}
 
 
-			sync = syncFactory();
+			var sync = syncFactory();
 
 			board.ontileclick = function(pt){
 				var play = game.play(pt, names[TURN]);
