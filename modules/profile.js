@@ -183,21 +183,21 @@ var Names = (function(){
 
 
 function Profile(socket){
-	this.__socket = socket;
+	this._socket = socket;
 
-	this.__info = {
+	this._info = {
 		"socket": socket,
 		"playing": false,
 		"name": Names.uniqueName()
 	};
 
-	this.__ghost = false;
+	this._ghost = false;
 }
 
 Profile.prototype = (function(){
 	var me = {
 		get uid(){
-			return this.__socket.id;
+			return this._socket.id;
 		},
 		set uid(val){
 			console.log("read only");
@@ -205,7 +205,7 @@ Profile.prototype = (function(){
 
 
 		get uname(){
-			return this.__socket.name;
+			return this._socket.name;
 		},
 		set uname(val){
 			console.log("read only");
@@ -213,33 +213,33 @@ Profile.prototype = (function(){
 	};
 
 	me.takeMe = function(){
-		return this.__ghost;
+		return this._ghost;
 	}
 
 	me.erase = function(){
-		this.__ghost = true;
-		return this.__ghost;
+		this._ghost = true;
+		return this._ghost;
 	}
 
 	me.getField = function(index){
-		if(this.__info.hasOwnProperty(index)){
-			if(index == 'socket') return this.__socket.id;
-			else return this.__info[index];
+		if(this._info.hasOwnProperty(index)){
+			if(index == 'socket') return this._socket.id;
+			else return this._info[index];
 		}else return false;
 	}
 
 	me.send = function(evt, data){
-		this.__info.socket.emit(evt, data);
+		this._info.socket.emit(evt, data);
 		return true;
 	}
 
 	me.on = function(evt, func){
 		this.off(evt);
-		this.__info.socket.on(evt, func);
+		this._info.socket.on(evt, func);
 	}
 
 	me.off = function(evt){
-		this.__info.socket.removeAllListeners(evt);
+		this._info.socket.removeAllListeners(evt);
 	}
 
 	return me;

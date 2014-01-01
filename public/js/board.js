@@ -1,8 +1,8 @@
 function Board(container, params){
 	container.innerHTML = "";
 
-	this.__container = container;
-	this.__params = params;
+	this._container = container;
+	this._params = params;
 
 
 	var board = [];
@@ -12,7 +12,7 @@ function Board(container, params){
 			board[i].push(false);
 		}
 	}
-	this.__board = board;
+	this._board = board;
 
 	var clas = (container.getAttribute("class") || "") + " board_container";
 	container.setAttribute("class", clas);
@@ -27,14 +27,14 @@ function Board(container, params){
 			"element": layer
 		});
 	}
-	this.__layers = layers;
+	this._layers = layers;
 
-	this.__dimensions = [false, false];
-	this.__spaces = params.size;
+	this._dimensions = [false, false];
+	this._spaces = params.size;
 
 	layers[2].element.onmousemove = function(e){
 		var rect = this.getBoundingClientRect();
-		thiss.__over({
+		thiss._over({
 			"x": e.clientX - rect.left,
 			"y": e.clientY - rect.top
 		});
@@ -42,13 +42,13 @@ function Board(container, params){
 
 	layers[2].element.onclick = function(e){
 		var rect = this.getBoundingClientRect();
-		thiss.__clicked({
+		thiss._clicked({
 			"x": e.clientX - rect.left,
 			"y": e.clientY - rect.top
 		});
 	}
 
-	this.__last = false;
+	this._last = false;
 
 	this.ontilehover = function(){};
 	this.ontileclick = function(){};
@@ -69,23 +69,23 @@ Board.prototype = (function(){
 		"19x19": [3, 9, 15]
 	};
 
-	me.__clear = function(pt, layer){
+	me._clear = function(pt, layer){
 
 		if(pt) {
-			var w = this.__dimensions[0] / this.__spaces[0],
-				h = this.__dimensions[1] / this.__spaces[1],
+			var w = this._dimensions[0] / this._spaces[0],
+				h = this._dimensions[1] / this._spaces[1],
 				x = pt[0] * w,
 				y = pt[1] * h;
 
-			this.__layers[layer].context.clearRect(x, y, w, h);
+			this._layers[layer].context.clearRect(x, y, w, h);
 		}else return false;
 	}
 
-	me.__over = function(ev){
-		var dims = this.__dimensions;
+	me._over = function(ev){
+		var dims = this._dimensions;
 
-		var x = Math.floor(this.__spaces[0] * ev.x / dims[0]),
-			y = Math.floor(this.__spaces[1] * ev.y / dims[1]);
+		var x = Math.floor(this._spaces[0] * ev.x / dims[0]),
+			y = Math.floor(this._spaces[1] * ev.y / dims[1]);
 
 		if(x >= dims[0]) x = dims[0] - 1;
 		if(y >= dims[1]) y = dims[1] - 1;
@@ -94,20 +94,20 @@ Board.prototype = (function(){
 		if(y < 0) y = 0;
 
 		var now = [x, y],
-			las = this.__last;
+			las = this._last;
 		if(now !== las){
-			this.__clear(this.__last, 2);				
+			this._clear(this._last, 2);				
 
-			this.__last = now;
+			this._last = now;
 			this.ontilehover(now);
 		}
 	}
 
-	me.__clicked = function(ev){
-		var dims = this.__dimensions;
+	me._clicked = function(ev){
+		var dims = this._dimensions;
 
-		var x = Math.floor(this.__spaces[0] * ev.x / dims[0]),
-			y = Math.floor(this.__spaces[1] * ev.y / dims[1]);
+		var x = Math.floor(this._spaces[0] * ev.x / dims[0]),
+			y = Math.floor(this._spaces[1] * ev.y / dims[1]);
 
 		if(x >= dims[0]) x = dims[0] - 1;
 		if(y >= dims[1]) y = dims[1] - 1;
@@ -121,13 +121,13 @@ Board.prototype = (function(){
 		]);
 	}
 
-	me.__dot = function(pt){
-		var w = this.__dimensions[0] / this.__spaces[0],
-			h = this.__dimensions[1] / this.__spaces[1],
+	me._dot = function(pt){
+		var w = this._dimensions[0] / this._spaces[0],
+			h = this._dimensions[1] / this._spaces[1],
 			x = (pt[0] + 0.5) * w,
 			y = (pt[1] + 0.5) * h,
 			r = 0.1 * Math.min(w, h),
-			cc = this.__layers[0].context;
+			cc = this._layers[0].context;
 
 		cc.fillStyle = "#000";
 		cc.beginPath();
@@ -136,16 +136,16 @@ Board.prototype = (function(){
 		cc.fill();
 	}
 
-	me.__circle = function(pt, color, layer){
-		var w = this.__dimensions[0] / this.__spaces[0],
-			h = this.__dimensions[1] / this.__spaces[1],
+	me._circle = function(pt, color, layer){
+		var w = this._dimensions[0] / this._spaces[0],
+			h = this._dimensions[1] / this._spaces[1],
 			x = (pt[0] + 0.5) * w,
 			y = (pt[1] + 0.5) * h,
 			r = 0.45 * Math.min(w, h),
-			cc = this.__layers[layer].context;
+			cc = this._layers[layer].context;
 
 
-		this.__clear(pt, layer);
+		this._clear(pt, layer);
 		cc.fillStyle = color;
 		cc.beginPath();
 		cc.arc(x, y, r, 0, 2 * Math.PI);
@@ -155,46 +155,54 @@ Board.prototype = (function(){
 
 	me.play = function(pt, color){
 		var bow = (!!color) ? "#FFF" : "#000";
-		this.__board[pt[0]][pt[1]] = true;
-		this.__circle(pt, bow, 1);
+		this._board[pt[0]][pt[1]] = true;
+		this._circle(pt, bow, 1);
 	}
 
 	me.putGhost = function(pt, color){
 		if(color === undefined){
-			color = this.__color;
+			color = this._color;
 		}
 		var bow = (!!color) ? "rgba(255,255,255, 0.5)" : "rgba(0,0,0,0.5)";
-		this.__circle(pt, bow, 2);
+		this._circle(pt, bow, 2);
+	}
+
+	me.putStones = function(color, array){
+		for(var i = 0; i < array.length; i++){
+			this.play(array[i], color);
+		}
+
+		return true;
 	}
 
 	me.remove = function(places){
 		for (var i = 0; i < places.length; i++) {
 			var pt = places[i];
 
-			this.__board[pt[0]][pt[1]] = false;
-			this.__clear(pt, 1);
+			this._board[pt[0]][pt[1]] = false;
+			this._clear(pt, 1);
 		}
 	}
 
 	me.resetCanvas = function(){
-		width = this.__container.clientWidth;
-		height = this.__container.clientHeight;
+		width = this._container.clientWidth;
+		height = this._container.clientHeight;
 
 		for(var i = 0; i < 3; i++){
-			var layer = this.__layers[i].element;
+			var layer = this._layers[i].element;
 			
 			layer.setAttribute("width", width);
 			layer.setAttribute("height", height);
 
 			var context = layer.getContext("2d");
 			context.clearRect(0, 0, width, height);
-			this.__layers[i].context = context;
+			this._layers[i].context = context;
 		}
 
-		var bottom = this.__layers[0].context;
+		var bottom = this._layers[0].context;
 
-		var hn = this.__spaces[0],
-			vn = this.__spaces[1];
+		var hn = this._spaces[0],
+			vn = this._spaces[1];
 
 		var hspace = width / hn,
 			vspace = height / vn;
@@ -217,7 +225,7 @@ Board.prototype = (function(){
 		}
 		bottom.stroke();
 
-		this.__dimensions = [width, height];
+		this._dimensions = [width, height];
 
 		if(stars.hasOwnProperty(hn + "x" + vn)){
 			var dots = stars[hn + "x" + vn];
@@ -228,7 +236,7 @@ Board.prototype = (function(){
 						dots[j]
 					];
 
-					this.__dot(pt);
+					this._dot(pt);
 				}
 			}
 		}

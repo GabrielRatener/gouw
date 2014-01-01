@@ -4,35 +4,35 @@ var StoneGroup = require('./stone_group.js');
 
 function Stone(color){
 	// inherent property
-	this.__color = color;
+	this._color = color;
 
 	// fixed property (once set)
-	this.__place = false;
-	this.__game = false;
+	this._place = false;
+	this._game = false;
 
 	//not fixed
-	this.__group = false;
+	this._group = false;
 }
 
 Stone.prototype = (function(){
 	var me = Object.create(prototype);	
 
 	me.is = function(){
-		return this.__color;
+		return this._color;
 	}
 
 	me.place = function(place, game){
-		if(this.__place || this.__game){
+		if(this._place || this._game){
 			return false;
 		}
 
-		this.__place = place;
-		this.__game = game;
+		this._place = place;
+		this._game = game;
 
 		var biggest,
 			maxSize = 0,
 			adj = this.adjacent(),
-			color = this.__color,
+			color = this._color,
 			grouped = {},
 			groups = [];
 
@@ -63,15 +63,15 @@ Stone.prototype = (function(){
 	}
 
 	me.spawnGroup = function(){
-		var game = this.__game,
-			color = this.__color,
+		var game = this._game,
+			color = this._color,
 			sg = new StoneGroup(game, color);
 
 		sg.addStone(this);
 	}
 
 	me.setGroup = function(group){
-		this.__group = group;
+		this._group = group;
 		return true;
 	}
 	

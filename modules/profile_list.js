@@ -9,20 +9,20 @@ function ProfileList(){
 			profs.push(arguments[i]);
 		}
 	}
-	this.__profs = profs;
+	this._profs = profs;
 
 	//var profileHash = new SmartHash();
-	this.__profileHash = {};
+	this._profileHash = {};
 	for (var i = 0; i < profs.length; i++) {
 		var sock = profs[i].uid;
-		this.__profileHash[sock] = profs[i];
+		this._profileHash[sock] = profs[i];
 	}
 }
 
 ProfileList.prototype = (function(){
 	var me = {
 		get length(){
-			return me.__profs.length;
+			return me._profs.length;
 		},
 		set length(val){
 			console.log("read only");
@@ -31,9 +31,9 @@ ProfileList.prototype = (function(){
 
 	me.clean = function(delay){
 		var i = 0;
-		while(this.__profs[i]){
-			if(this.__profs[i].takeMe()){
-				this.__profs.splice(i, 1);
+		while(this._profs[i]){
+			if(this._profs[i].takeMe()){
+				this._profs.splice(i, 1);
 			}else i++;
 		}
 
@@ -47,35 +47,35 @@ ProfileList.prototype = (function(){
 
 	me.addSocket = function(socket){
 		var profile = new Profile(socket);
-		this.__profs.push(profile);
-		this.__profileHash[socket.id] = profile;
+		this._profs.push(profile);
+		this._profileHash[socket.id] = profile;
 
 		return profile;
 	}
 
 	me.removeSocket = function(socket){
 		var uid = socket.id,
-			profile = this.__profileHash[uid];
+			profile = this._profileHash[uid];
 
 		profile.erase();
-		delete this.__profileHash[uid];
+		delete this._profileHash[uid];
 
 		return true;
 	}
 
 	me.addProfile = function(profile){
-		this.__profs.push(profile);
+		this._profs.push(profile);
 	}
 
 	me.send = function(type, data){
-		for (var i = 0; i < this.__profs.length; i++) {
-			this.__profs[i].send(type, data);
+		for (var i = 0; i < this._profs.length; i++) {
+			this._profs[i].send(type, data);
 		}
 	}
 
 	me.on = function(evt, func){
-		for (var i = 0; i < this.__profs.length; i++) {
-			var prof = his.__profs[i];
+		for (var i = 0; i < this._profs.length; i++) {
+			var prof = his._profs[i];
 			prof.on(evt, function(data){
 				func(data, prof.uid);
 			});
@@ -83,21 +83,21 @@ ProfileList.prototype = (function(){
 	}
 
 	me.off = function(evt){
-		for (var i = 0; i < this.__profs.length; i++) {
-			this.__profs[i].off(evt);
+		for (var i = 0; i < this._profs.length; i++) {
+			this._profs[i].off(evt);
 		}
 	}
 
 	me.at = function(index){
-		return this.__profs[index];
+		return this._profs[index];
 	}
 
 	me.bid = function(id){
-		return this.__profileHash[id];
+		return this._profileHash[id];
 	}
 
 	me.iterator = function(){
-		var I = 0, profs = this.__profs, fields = arguments;
+		var I = 0, profs = this._profs, fields = arguments;
 
 		var next = function(){
 			if(I < profs.length){

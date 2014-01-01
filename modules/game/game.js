@@ -1,3 +1,4 @@
+require('../extend/object.js');
 require('../extend/array.js');
 
 var Empty = require('./empty.js'),
@@ -20,19 +21,26 @@ function adda(){
 
 function Game(players, options){
 	// players[0]: black, players[1]: white
-	this.__players = players;
+	this._players = players;
 
 	// default values
 	var opts = {
 		"width": 19,
 		"height": 19,
 		"handicap": 0,
+		"initial": [[],[]],
+		"turn": 0,
 		"komi": 7.5
 	};
 	for(var k in options){	// overide default values
 		opts[k] = options[k];
 	}
-	this.__options = opts;
+	this._options = opts;
+
+	this._initial = {
+		"turn": false,
+		"stones": [[],[]]
+	};
 
 	var board = [];
 	for (var i = 0; i < opts.width; i++) {
@@ -42,16 +50,22 @@ function Game(players, options){
 			board[i].push(space);
 		}
 	}
-	this.__board = board;
+	this._board = board;
 
-	this.__turn = (!!opts.handicap) ? 0 : 1;  // reversed when nextMove is called
-	this.__turns = [];
+	if(opts.handicap){
+		var turn = 1;
+	}else{
+		var turn = opts.turn;
+	}
 
-	this.__captures = [0,0];
+	this._turn = (turn) ? 0 : 1;  // reversed when nextMove is called
+	this._turns = [];
 
-	this.__unique = new Unique(10);
+	this._captures = [0,0];
 
-	this.__nextMove();
+	this._unique = new Unique(10);
+
+	this._nextMove();
 }
 
 Game.prototype = (function(){
@@ -94,6 +108,24 @@ Game.prototype = (function(){
 		return me;
 	}());
 
+	var handicaps = [
+		[2,2],
+		[0,0],
+		[0,2],
+		[2,0],
+		[1,1],
+		[2,1],
+		[0,1],
+		[1,2],
+		[1,0]
+	];
+
+	var scales = {
+		"9x9": [2, 4, 6],
+		"13x13": [3, 6, 9],
+		"19x19": [3, 9, 15]
+	};
+
 	var adjacent = [
 		[-1, 0],
 		[0, 1],
@@ -101,49 +133,85 @@ Game.prototype = (function(){
 		[0, -1]
 	];
 
-	me.__nextMove = function(){
-		var bow = this.__turn = (!!this.__turn) ? 0 : 1;
+	me._resetBoard = function(){
+		var board = this._board;
+		for(var i = 0; i < board.length; i++){
+			for(var j = 0; board[i].length; j++){
+				if(board[i][j] instanceof Empty){
+					continue;
+				}else{
+					board[i][j] = new Empty([i,j], this);		
+				}
+			}
+		}
+		
+		return true;
+	}
 
-		this.__turns.push({
+	me._putStone = function(color, point){
+		var stone = new Stone(color);
+		this._board[point[0]][point[1]] = stone;
+		stone.place(point, game);
+	}
+
+	me._nextMove = function(){
+		var bow = this._turn = (!!this._turn) ? 0 : 1;
+
+		this._turns.push({
 			"color": bow,
 			"played": [],
 			"captured": [],
-			"turn": this.__turns.length
+			"turn": this._turns.length
 		});
 	}
 
-	me.__recordCapture = function(pt){
-		var turns = this.__turns,
+	me._recordCapture = function(pt){
+		var turns = this._turns,
 			index = turns.length - 1;
 
 		turns[index].captured.push(pt);
 		return true;
 	}
 
-	me.__recordPlay = function(pt){
-		var turns = this.__turns,
+	me._recordPlay = function(pt){
+		var turns = this._turns,
 			index = turns.length - 1;
 
 		turns[index].played.push(pt);
 		return true;
 	}
 
-	me.__getMoveBack = function(i){
-		return this.__turns[this.__turns.length - (2 + i)];
+	me._getMoveBack = function(i){
+		return this._turns[this._turns.length - (2 + i)];
 	}
 
-	me.__getMoveAt = function(i){
-		return this.__turns[i];
+	me._getMoveAt = function(i){
+		return this._turns[i];
+	}
+
+	me._handicapPlaces = function(n){
+		var w = this._options.width,
+			h = this._options.height;
+
+		var arr = [],
+			han = scales[w + "x" + h];
+		for(var i = 0; i < n; i++){
+			var of = handicaps[i],
+				point = [han[of[0]], han[of[1]]]
+			arr.push(point);
+		}
+
+		return arr;
 	}
 
 	me.unique = function(){
-		return this.__unique.token();
+		return this._unique.token();
 	}
 
 	/* Information */
 
 	me.at = function(point){
-		var opts = this.__options;
+		var opts = this._options;
 
 		if(point[0] < 0 || point[0] >= opts.width){
 			return ether;
@@ -154,7 +222,7 @@ Game.prototype = (function(){
 		}
 
 		// if point is on board return point
-		return this.__board[point[0]][point[1]];
+		return this._board[point[0]][point[1]];
 	}
 
 	// returns 4 value array of adjacent objects, or false, if
@@ -169,11 +237,11 @@ Game.prototype = (function(){
 	}
 
 	me.dimensions = function(){
-		var o = this.__options;
+		var o = this._options;
 		return [o.width, o.height];
 	}
 
-	me.validate = function(point, color){
+	me.validate = function(point, color, noko){
 
 		// make sure space is empty
 		var now = this.at(point);
@@ -191,7 +259,7 @@ Game.prototype = (function(){
 		// test for ko
 
 		//adjacents muste either be board edge (-5) or opposite color
-		if(!freqs[color] && !freqs[5]){
+		if(!noko && !freqs[color] && !freqs[5]){
 			var libs = adj.process(function(object){
 				var o = object.group;
 				if(object.is() !== 5 && o.size() === 1 && o.liberties() === 1){
@@ -204,7 +272,7 @@ Game.prototype = (function(){
 			if(freq[1] === 1){
 				var index = libs.indexOf(1),
 					place = adj[index].where(),
-					lastt = this.__getMoveBack(0);
+					lastt = this._getMoveBack(0);
 
 				if(	lastt.played.length === 1 && 
 					lastt.captured.length === 1 &&
@@ -257,9 +325,9 @@ Game.prototype = (function(){
 			var adj = stone.adjacent(ncolor),
 				place = stone.where();
 
-			this.__board[place[0]][place[1]] = new Empty(place, this);
-			this.__captures[color] += 1;
-			this.__recordCapture(place);
+			this._board[place[0]][place[1]] = new Empty(place, this);
+			this._captures[color] += 1;
+			this._recordCapture(place);
 
 			for (var i = 0; i < adj.length; i++) {
 				var group = adj[i].group,
@@ -284,8 +352,8 @@ Game.prototype = (function(){
 	}
 
 	me.play = function(pt, id){
-		var turn = this.__turn;
-		if(this.__players[turn] !== id){
+		var turn = this._turn;
+		if(this._players[turn] !== id){
 			return false;
 		}
 
@@ -296,24 +364,97 @@ Game.prototype = (function(){
 		}
 		
 		// if valid: 
-		var stone = new Stone(turn);
-		this.__board[pt[0]][pt[1]] = stone;
-		stone.place(pt, this);
+		this._putStone(turn, pt);
+		this._recordPlay(pt);
+		this._nextMove();
 
-		this.__recordPlay(pt);
-		this.__nextMove();
-
-		return this.__getMoveBack(0);
+		return this.gameStateUpdate();
 	}
 
 	me.pass = function(id){
-		if(this.__players[this.__turn] !== id){
+		if(this._players[this._turn] !== id){
 			return false;
-		}
+		}else return this.gameStateUpdate();
 	}
 
 	me.resign = function(id){
 
+	}
+
+	me.start = function(){
+		var handicap = this._options.handicap;
+		if(handicap){
+			var h = this._handicapPlaces(handicap);
+			for(var i = 0; i < h.length; i++){
+				this._putStone(0, h[i]);
+			}
+
+			this._initial.turn = 1;
+			this._initial.stones[0] = h;
+		}else{
+			var init = this._options.initial,
+				turn = this._options.turn,
+				thes = this;
+
+			for(var i = 0; i < 2; i++){
+				this._options.initial[i].forEach(function(place){
+					var valid = thes.validate(place, i, true);
+					if(valid){
+						thes._putStone(i, place);
+					}else{
+						thes._resetBoard();
+						return false;
+					}
+					thes._putStone(i, place);
+				});
+			}
+
+			this._initial.turn = this._options.turn;
+			this._initial.stones = init;
+		}
+
+		return this.initialGameState();
+	}
+
+
+	me.gameStateUpdate = function(){
+		var ob = this._getMoveBack(0);
+
+		return {
+			// if a play has not been made it is a pass
+			"type": (ob.played.length) ? "play" : "pass",
+			"color": ob.color,
+
+			// false if passing
+			"point": (ob.played[0] || false),
+			"captures": ob.captured,
+			"turn": ob.turn
+		}
+	}
+
+	me.initialGameState = function(){
+
+		var handicap = this._options.handicap;
+		if(handicap){
+			return {
+				"type": "handicap",
+				"handicap": handicap,
+				"initial": [
+					this._handicapPlaces(handicap),
+					[]
+				],
+				"turn": 1
+			};
+		}else{
+			var turn = this._options.turn,
+				init = this._options.initial;
+
+			return {
+				"type": "initial",
+				"initial": init.clone(true),
+				"turn": turn
+			};
+		}
 	}
 
 	return me;

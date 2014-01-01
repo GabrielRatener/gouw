@@ -1,6 +1,6 @@
 function Unique(length){
-	this.__taken = [];
-	this.__length = length;
+	this._taken = [];
+	this._length = length;
 }
 
 Unique.prototype = (function(){
@@ -11,28 +11,28 @@ Unique.prototype = (function(){
 	me.token = function(){
 		do{
 			var str = "";
-			for(var i = 0; i < this.__length; i++){
+			for(var i = 0; i < this._length; i++){
 				var randy = CHARS.length * Math.random();
 				str += CHARS[Math.floor(randy)].toString();
 			}
-		}while(str in this.__taken);
+		}while(str in this._taken);
 
-		this.__taken.push(str);
+		this._taken.push(str);
 		return str;
 	}
 
 	me.free = function(token){
-		var index = this.__taken.indexOf(token);
+		var index = this._taken.indexOf(token);
 
 		if(index < 0) return false;
 		else{
-			this.__taken.splice(index, 1);
+			this._taken.splice(index, 1);
 			return true;
 		}
 	}
 
 	me.isFree = function(token){
-		return !(this.__taken.indexOf(token) < 0);
+		return !(this._taken.indexOf(token) < 0);
 	}
 
 	return me;

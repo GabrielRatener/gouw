@@ -1,16 +1,16 @@
 var prototype = require('./prototypes/location.js');
 
 function Empty(place, game){
-	this.__group = false;
+	this._group = false;
 
-	this.__place = place;
-	this.__game = game;
+	this._place = place;
+	this._game = game;
 }
 
 Empty.prototype = (function(){
 	var me = Object.create(prototype);
 
-	me.__is = 5;
+	me._is = 5;
 
 	return me;
 }());

@@ -94,7 +94,14 @@
 				}
 			);
 
-			var game = new Game(names, {});
+			var game = new Game(names, {
+				"handicap": 5
+			});
+
+			var start = game.start();
+			board.putStones(0, start.initial[0]);
+			board.putStones(1, start.initial[1]);
+			TURN = start.turn;
 
 			function syncFactory(){
 				var hash = {}, i = false;
@@ -131,17 +138,9 @@
 				var play = game.play(pt, names[TURN]);
 
 				if(play){
-					var ob = {
-						"type": "play",
-						"color": play.color,
-						"point": play.played[0],
-						"captures": play.captured,
-						"turn": play.turn
-					};
-
-					sync(ob.turn, function(){
-						board.play(ob.point, ob.color);
-						board.remove(ob.captures);
+					sync(play.turn, function(){
+						board.play(play.point, play.color);
+						board.remove(play.captures);
 						toggle();
 					});
 				}

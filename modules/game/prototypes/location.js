@@ -2,17 +2,17 @@ module.exports = (function(){
 	var me = {
 		// getters and/or setters
 		get group(){
-			return this.__group;
+			return this._group;
 		},
 
 
 		get game(){
-			return this.__game;
+			return this._game;
 		}
 	};
 
 	// Yay, recursion!!!!
-	me.__crawl = function(is, hash, cluster){
+	me._crawl = function(is, hash, cluster){
 		
 		var num = this.placeNumber();
 		if(this.is() === is && !hash[num]){
@@ -26,36 +26,36 @@ module.exports = (function(){
 			if(adj[i].is() === is && !hash[num]){
 				hash[num] = true;
 				cluster.push(adj[i]);
-				adj[i].__crawl(is, hash, cluster);
+				adj[i]._crawl(is, hash, cluster);
 			}
 		}
 	}
 
 	me.group = function(){
-		return this.__group;
+		return this._group;
 	}
 
 	me.setPlace = function(coords, game){
-		this.__place = coords;
-		this.__game = game;
+		this._place = coords;
+		this._game = game;
 	}
 
 	me.isPlaced = function(){
-		return !!this.__place;
+		return !!this._place;
 	}
 
 	me.where = function(){
-		return this.__place.slice(0);
+		return this._place.slice(0);
 	}
 
 	me.is = function(){
-		return this.__is;
+		return this._is;
 	}
 
 	// gives unique linearized number of position (to use in hash tables)
 	me.placeNumber = function(){
-		var place = this.__place,
-			dims = this.__game.dimensions();
+		var place = this._place,
+			dims = this._game.dimensions();
 		return place[0] * dims[1] + place[1];
 	}
 
@@ -70,14 +70,14 @@ module.exports = (function(){
 			}
 		}
 
-		this.__crawl(is, hash, cluster);
+		this._crawl(is, hash, cluster);
 
 		return cluster;
 	}
 
 	me.adjacent = function(type){
-		var pt = this.__place,
-			adj = this.__game.adjacent(pt);
+		var pt = this._place,
+			adj = this._game.adjacent(pt);
 
 		if(type === undefined){
 			return adj;
