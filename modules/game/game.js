@@ -1,3 +1,9 @@
+require('../extend/array.js');
+
+var Empty = require('./empty.js'),
+	Stone = require('./stone.js'),
+	Unique = require('../unique.js');
+
 function adda(){
 	var lead = arguments[0], arr = [];
 	for (var i = 0; i < lead.length; i++) {
@@ -11,10 +17,6 @@ function adda(){
 
 	return arr;
 }
-
-var Empty = require('./empty.js'),
-	Stone = require('./stone.js'),
-	Unique = require('../unique.js');
 
 function Game(players, options){
 	// players[0]: black, players[1]: white
@@ -204,12 +206,11 @@ Game.prototype = (function(){
 					place = adj[index].where(),
 					lastt = this.__getMoveBack(0);
 
-				if(	
-					lastt.played.length === 1 && 
+				if(	lastt.played.length === 1 && 
 					lastt.captured.length === 1 &&
 					lastt.played[0].is(place) && 
-					lastt.captured[0].is(point)
-				){
+					lastt.captured[0].is(point)){
+
 					return false;
 				}
 			}
@@ -298,6 +299,7 @@ Game.prototype = (function(){
 		var stone = new Stone(turn);
 		this.__board[pt[0]][pt[1]] = stone;
 		stone.place(pt, this);
+
 		this.__recordPlay(pt);
 		this.__nextMove();
 
