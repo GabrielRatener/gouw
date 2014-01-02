@@ -28,6 +28,38 @@
 		</div>
 		<script type="text/javascript">
 
+			function append(elem, stuff){
+				if (stuff instanceof String){
+					var node = document.createTextNode(append);
+					elem.appendChild(node);
+				}else if (stuff instanceof Node){
+					elem.appendChild(stuff);
+				}else if (stuff instanceof Array){
+					for(var i = 0; i < stuff.length; i++){
+						append(elem, stuff[i]);
+					}
+				}else{
+					return false;
+				}
+
+				return true;
+			}
+
+			function tag(type, attributes, append){
+				var ele = document.createElement(type);
+
+				for(var k in attributes){
+					ele[k] = attributes[k];
+				}
+
+				if (!append) return;
+
+				var res = append(ele, append);
+				if(res){
+					return ele;
+				}else return false;
+			}
+
 			function syncFactory(){
 				var hash = {}, i = false;
 				return function(num, func){
@@ -121,6 +153,96 @@
 
 				return me;
 			}());
+
+
+			var RequestDisplay = (function(){
+				var me = {};
+
+				me.onsubmit = function(){};
+
+				var UL = tag("ul", {});
+
+				var FORM = tag("form", {
+					"action": "javascript: void(0);",
+					"onsubmit": function(e){
+						me.onsubmit(options, e);
+					}
+				}, UL);
+
+				var target = false;
+
+				var options = {};
+
+				function addOption(keyval, id, name){
+					var name = name|| id,
+						array = Object.keys(keyval);
+
+
+					var head = tag("h3", {}, name);
+
+					var tags = array.map(function(item, i){
+						return tag("option", {
+							"value": i
+						}, item);
+					});
+
+					var select = tag("select", {
+						"onchange":function(){
+							var key = array[this.selectedIndex];
+							options[key] = keyval[key];
+						}
+					}, tags);
+
+					var li = tag("li", {
+						"id": id
+					}, [head, select]);
+
+					UL.appendChild(li);
+				}
+
+				me.show = function(){
+
+				}
+
+				me.hide = function(){
+
+				}
+
+
+				me.load = function(){
+
+				}
+
+				me.clean = function(){
+
+				}
+
+				return me;
+			}());
+
+
+			var GameDisplay = (function(){
+				var me = {};
+
+				me.show = function(){
+
+				}
+
+				me.hide = function(){
+	
+				}
+
+				me.load = function(){
+
+				}
+
+				me.clean = function(){
+
+				}
+
+				return me;
+			}());
+
 
 			//namespace Display
 			/*
