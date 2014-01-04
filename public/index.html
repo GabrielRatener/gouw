@@ -14,19 +14,38 @@
 				</ul>
 
 			</div>
+			<div id="request">
+
+			</div>
 			<div id="game">
 				<!-- all genneral stuff goes here -->
 
+				<ul id="commands"></ul>
 				<!-- canvas appears when game has been aggreed to -->
-				<div id="board_wrapper">
+				<div id="board">
 				</div>
 
-				<!-- appears initially -->
-				<form id="parameters">
-				</form>
+				<div id="scores">
+					<div id="white">
+						<span class="title">White:</span><span class="value"></span>
+					</div>
+					<div id="black">
+						<span class="title">White:</span><span class="value"></span>
+					</div>
+				</div>
 			</div>
 		</div>
 		<script type="text/javascript">
+
+
+
+			function qe(query){
+				return document.querySelector(query);
+			}
+
+			function qes(query){
+				return document.querySelectorAll(query);
+			}
 
 			function append(elem, stuff){
 				if (stuff instanceof String){
@@ -52,7 +71,7 @@
 					ele[k] = attributes[k];
 				}
 
-				if (!append) return;
+				if (!append) return ele;
 
 				var res = append(ele, append);
 				if(res){
@@ -164,6 +183,7 @@
 
 				var FORM = tag("form", {
 					"action": "javascript: void(0);",
+					"class": "hidden",
 					"onsubmit": function(e){
 						me.onsubmit(options, e);
 					}
@@ -174,7 +194,7 @@
 				var options = {};
 
 				function addOption(keyval, id, name){
-					var name = name|| id,
+					var name = name || id,
 						array = Object.keys(keyval);
 
 
@@ -189,13 +209,35 @@
 					var select = tag("select", {
 						"onchange":function(){
 							var key = array[this.selectedIndex];
-							options[key] = keyval[key];
+							options[id] = keyval[key];
 						}
 					}, tags);
 
 					var li = tag("li", {
-						"id": id
+						"id": id,
+						"select"
 					}, [head, select]);
+
+					UL.appendChild(li);
+				}
+
+				function addTextInput(id, name, placeholder){
+					var name = name || id;
+
+					var h3 = tag("h3", {}, name);
+
+					var text = tag("textarea", {
+						"placeholder": (!!placeholder) ? placeholder : "",
+						"value": "",
+						"onchange": function(e){
+							options[id] = this.value
+						}
+					});
+
+					var li = tag("li", {
+						"id": id,
+						"class": "text"
+					}, [h3, text]);
 
 					UL.appendChild(li);
 				}
@@ -217,12 +259,105 @@
 
 				}
 
+				me.attach = function(elem){
+					elem.appendChild(FORM);
+				}
+
+				addOption({
+					"9x9": [9,9],
+					"13x13" [13,13],
+					"19x19": [19,19]
+				}, "board_size", "Board Size");
+
+				addOption({
+					"1": 1,
+					"2": 2,
+					"3": 3,
+					"4": 4,
+					"5": 5,
+					"6": 6,
+					"7": 7,
+					"8": 8,
+					"9": 9
+				}, "handicap", "Handicap");
+
+				addOption({
+					"black": 0,
+					"white": 1
+				}, "color", "Color");
+
+				addTextInput("message", "Add Message", "Hello, Would you like to play a game...");
+
+				var submit = tag("li", {
+					"id": "submit",
+					"class": "submit"
+				}, 	
+					tag("input", {
+						"type": "submit",
+						"value": "Send Request"
+					})
+				);
+
+				UL.appendChild(submit);
+
 				return me;
 			}());
 
 
 			var GameDisplay = (function(){
 				var me = {};
+
+				var 
+					score = [0,0],
+					COMMANDS = qe("#game #commands"),
+					BOARD = qe("#game #board"),
+
+
+					// as usual black is 0, white is 1
+					CAPTURES = [
+						qe("#game #scores #black .value"),
+						qe("#game #scores #white .value")
+					];
+
+
+				function addAction(id, title, func){
+					var button = tag("input", {
+						"type": "button",
+						"value": title,
+						"onclick": function(e){
+							func(e);
+						}
+					});
+
+					var li = tag("li", {
+						"id": id
+					}, button);
+				}
+
+				me.reset = function(){
+					score = [0, 0];
+					CAPTURES[0].innerHTML = 0;
+					CAPTURES[1].innerHTML = 0;
+
+					board.reset();
+				}
+
+
+				me.setScore = function(c, val){
+					score[c] = val;
+					CAPTURES[c].innerHTML = val;
+				}
+
+				me.addScore = function(c, val){
+					var ns = score[c] + val;
+					scores[c] = ns;
+					CAPTURES[c].innerHTML = ns;
+				}
+
+				me.play = function(pt, color){
+					board.play(pt, color);
+				}
+
 
 				me.show = function(){
 
@@ -239,6 +374,12 @@
 				me.clean = function(){
 
 				}
+
+				// user defined methods (event handlers)
+				me.onplay = function(e){};
+				me.onpass = function(e){};
+				me.onundorequest = function(e){};
+				me.onresign = function(e){};
 
 				return me;
 			}());
