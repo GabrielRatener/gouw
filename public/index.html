@@ -14,9 +14,11 @@
 				</ul>
 
 			</div>
+
 			<div id="request">
 
 			</div>
+
 			<div id="game">
 				<!-- all genneral stuff goes here -->
 
@@ -27,10 +29,16 @@
 
 				<div id="scores">
 					<div id="white">
-						<span class="title">White:</span><span class="value"></span>
+						<svg height="100" width="200">
+							<circle cx="100" cy="50" r="40" fill="black" />
+							<text class="value" x="95" y="55" fill="#fff">0</text>
+						</svg>
 					</div>
 					<div id="black">
-						<span class="title">White:</span><span class="value"></span>
+						<svg height="100" width="200">
+							<circle cx="100" cy="50" r="40" fill="white" />
+							<text class="value" x="95" y="55" fill="#000">0</text>
+						</svg>
 					</div>
 				</div>
 			</div>
@@ -64,47 +72,19 @@
 				return true;
 			}
 
-			function tag(type, attributes, append){
+			function tag(type, attributes, attach){
 				var ele = document.createElement(type);
 
 				for(var k in attributes){
 					ele[k] = attributes[k];
 				}
 
-				if (!append) return ele;
+				if (!attach) return ele;
 
-				var res = append(ele, append);
+				var res = append(ele, attach);
 				if(res){
 					return ele;
 				}else return false;
-			}
-
-			function syncFactory(){
-				var hash = {}, i = false;
-				return function(num, func){
-					if(i === false){
-						i = num;
-					}
-
-					if(i === num){
-						func(i);
-						i += 1;
-
-						while(hash.hasOwnProperty(i)){
-							hash[i](i);
-							delete hash[i];
-
-							i += 1;
-						}
-					}else{
-						if(num < i) return false;
-						else{
-							hash[i] = func;
-						}
-					}
-
-					return true;
-				}
 			}
 
 			var MY_NAME, MY_ID;
@@ -139,6 +119,7 @@
 
 					el.innerHTML = info.name;
 					el.onclick = function(){
+						console.log("game requested...");
 						me.sendGameRequest(info.socket, {});
 					}
 
@@ -215,7 +196,7 @@
 
 					var li = tag("li", {
 						"id": id,
-						"select"
+						"class":"select"
 					}, [head, select]);
 
 					UL.appendChild(li);
@@ -250,7 +231,6 @@
 
 				}
 
-
 				me.load = function(){
 
 				}
@@ -263,9 +243,13 @@
 					elem.appendChild(FORM);
 				}
 
+				me.getOptions = function(){
+					return options.clone(true);
+				}
+
 				addOption({
 					"9x9": [9,9],
-					"13x13" [13,13],
+					"13x13": [13,13],
 					"19x19": [19,19]
 				}, "board_size", "Board Size");
 
@@ -309,6 +293,11 @@
 
 				var 
 					score = [0,0],
+					board = undefined,
+					sync = undefined,
+					color = 0,
+
+					GAME = qe("#game"),
 					COMMANDS = qe("#game #commands"),
 					BOARD = qe("#game #board"),
 
@@ -319,6 +308,42 @@
 						qe("#game #scores #white .value")
 					];
 
+
+				function syncFactory(){
+					var hash = {}, i = false;
+					return function(num, func){
+						if(i === false){
+							i = num;
+						}
+
+						if(i === num){
+							func(i);
+							i += 1;
+
+							while(hash.hasOwnProperty(i)){
+								hash[i](i);
+								delete hash[i];
+
+								i += 1;
+							}
+						}else{
+							if(num < i) return false;
+							else{
+								hash[i] = func;
+							}
+						}
+
+						return true;
+					}
+				}
+
+				function tilehover(pt){
+					this.putGhost(pt, color);
+				}
+
+				function tileclick(pt){
+					me.onplay(pt);
+				}
 
 				function addAction(id, title, func){
 					var button = tag("input", {
@@ -332,39 +357,58 @@
 					var li = tag("li", {
 						"id": id
 					}, button);
+
+					COMMANDS.appendChild(li);
 				}
 
-				me.reset = function(){
-					score = [0, 0];
-					CAPTURES[0].innerHTML = 0;
-					CAPTURES[1].innerHTML = 0;
-
-					board.reset();
-				}
-
-
-				me.setScore = function(c, val){
+				function setScore(c, val){
 					score[c] = val;
-					CAPTURES[c].innerHTML = val;
+					CAPTURES[c].textContent = val;
 				}
 
-				me.addScore = function(c, val){
+				function addScore(c, val){
 					var ns = score[c] + val;
-					scores[c] = ns;
-					CAPTURES[c].innerHTML = ns;
+					score[c] = ns;
+					CAPTURES[c].textContent = ns;
 				}
 
-				me.play = function(pt, color){
-					board.play(pt, color);
+				me.newGame = function(ob){
+					board = new Board(
+						BOARD,
+						{
+							"size": ob.size
+						}
+					);
+
+					color = ob.color;
+
+					board.ontilehover = tilehover;
+					board.ontileclick = tileclick;
+
+					sync = syncFactory();
+
+					return true;
+				}
+
+				me.play = function(ob){
+					sync(ob.turn, function(){
+						board.play(ob.point, ob.color);
+						board.remove(ob.captures);
+						addScore(ob.color, ob.captures.length);
+					});
+
+					return true;
 				}
 
 
 				me.show = function(){
-
+					GAME.style.opacity = "1.0";
+					GAME.style.display = "block";
 				}
 
 				me.hide = function(){
-	
+					GAME.style.display = "none";
+					GAME.style.opacity = "0.0";
 				}
 
 				me.load = function(){
@@ -380,6 +424,18 @@
 				me.onpass = function(e){};
 				me.onundorequest = function(e){};
 				me.onresign = function(e){};
+
+				addAction("pass", "pass", function(e){
+					me.onpass(e);
+				});
+
+				addAction("undo", "request undo", function(e){
+					me.onundorequest(e);
+				});
+
+				addAction("resign", "resign", function(e){
+					me.onresign(e);
+				});
 
 				return me;
 			}());
@@ -461,45 +517,28 @@
 			});
 
 			SOCKET.on('new_game', function(p){
-				console.log("new game starting...");
-				var board = new Board(
-					document.querySelector("#board_wrapper"),
-					{
-						"size": p.size
-					}
-				),
-				sync = syncFactory();
+				console.log("whack");
+				GameDisplay.show();
 
-				BOARD = board;
-
-				board.ontileclick = function(pt){
+				GameDisplay.onplay = function(pt){
+					console.log("play done");
 					SOCKET.emit('play', {
 						"point": pt
 					});
 				}
-
-				board.ontilehover = function(pt){
-					this.putGhost(pt, p.color);
-				}
+				GameDisplay.newGame(p);
 
 				SOCKET.on('game_update', function(data){
 
 					switch(data.type){
 					case "play":
-						sync(data.turn, function(){
-							board.play(data.point, data.color);
-							board.remove(data.captures);
-						});
+						GameDisplay.play(data);
 						break;
 					case "pass":
-						sync(data.turn, function(){
-							//nothing to do here
-						});
+						GameDisplay.pass(data);
 						break;
 					case "resign": 
-						sync(data.turn, function(){
-							//
-						});
+						GameDisplay.resign(data);
 						break;
 					}
 				});

@@ -16,8 +16,9 @@ h3{
 }
 
 #everything_wrapper{
-	position: relative;
+	height: 100%;
 	width: 100%;
+	position: relative;
 }
 
 #sidebar{
@@ -43,10 +44,43 @@ h3{
 	background-color: #FFCC99;
 }
 
+
+
+
+
 #game{
+	position: absolute;
+	width: 100%;
+	display: none;
+	opacity: 0.0;
+	background-color: rgba(0,0,0, 0.7);
+	top: 0px;
+	left: 0px;
+
+}
+
+#game #commands{
+	list-style: none;
+	display: block;
+	width: 100%;
+	padding: 0px;
+	margin: 0px;
+}
+
+#game #commands li{
+	width: 190px;
+	font-size: 16pt;
 	display: inline-block;
-	vertical-align: top;
-	position: relative;
+	background-color: #600000;
+	padding-top: 15px;
+	height: 40px;
+	margin: 5px;
+	text-align: center;
+}
+
+#game #commands li input{
+	border: none;
+	cursor: pointer;
 }
 
 .board_container{
@@ -54,6 +88,7 @@ h3{
 	padding: 0px;
 	border: none;
 	cursor: pointer;
+	position: relative;
 }
 
 .board_container canvas{
@@ -65,8 +100,32 @@ h3{
 	left: 0px;
 }
 
-#board_wrapper{
-	width: 700px;
-	height: 700px;
+#board{
+	display: inline-block;
+	width: 600px;
+	height: 600px;
 	background-color: #cc6600;
+}
+
+#scores{
+	display: inline-block;
+	width: 400px;
+	vertical-align: top;
+}
+
+#scores div{
+	width: 49%;
+	display: inline-block;
+	vertical-align: top;
+	text-align: center;
+}
+
+#scores div#black{
+	background-color: black;
+	color: white;
+}
+
+#scores div#white{
+	background-color: white;
+	color: black;
 }
