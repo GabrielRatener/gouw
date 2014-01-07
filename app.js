@@ -1,7 +1,7 @@
 /* Gennerally useful methods for arrays */
 
 // for debugging
-var DEBUG_MODE = true;
+var DEBUG_MODE = false;
 
 
 function give(arg){
@@ -109,38 +109,39 @@ io.sockets.on('connection', function(socket){
 		REQUESTS[toke] = data;
 		data.toke = toke;
 
+		if(!data.target) return;
+
 		var targ = ONLINE.bid(data.target);
 		targ.on('game_accept', function(udata){
 			var pot = REQUESTS[udata.toke];
 			if(pot.target === targ.uid){
+				var params = pot.parameters;
+
+				//delete entry in request table, deactivate accept handler
 				delete REQUESTS[data.toke];
 				targ.off('game_accept');
 
 
 
-				/* Game Events
 
-				var game = GAMES[data.toke] = new Game(
-						profile.uid,
-						targ.uid, 
-						data.parameters
-					),
 
-					// static so no cleaning necessary
 
-				*/
+				// order determines who is black and white in the game (first is black)
+				var order = (!pot.turn) ? [profile.uid, targ.uid] : [targ.uid, profile.uid];
+
 				var players = new ProfilePair(targ, profile),
-					game = new Game([targ.uid, profile.uid], {});
+					game = new Game(order, {
+						"width": params.size[0],
+						"height": params.size[1],
+						"handicap": params.handicap
+					});
+
+				var initial = game.start();
 
 				players.on('play', function(data, id){
 					var play = game.play(data.point, id);
-					if(play) players.send('game_update', {
-						"type": "play",
-						"color": play.color,
-						"point": play.played[0],
-						"captures": play.captured,
-						"turn": play.turn
-					});
+
+					if(play) players.send('game_update', play);
 					else players.send('error', data);
 				});
 
@@ -178,16 +179,20 @@ io.sockets.on('connection', function(socket){
 				});
 
 				profile.send('new_game', {
-					"size": [19, 19],
-					"color": 1
+					"size": params.size,
+					"color": params.color,
+					"handicap": params.handicap,
+					"initial": initial.initial
 				});
 
 				targ.send('new_game', {
-					"size": [19, 19],
-					"color": 0
+					"size": params.size,
+					"color": (!params.color) ? 1 : 0,
+					"handicap": params.handicap,
+					"initial": initial.initial
 				});
 
-				/////////////////
+				////////////////////////////////////
 			}
 		});
 		targ.send('game_request', data);
