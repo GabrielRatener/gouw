@@ -78,7 +78,16 @@ Board.prototype = (function(){
 				y = pt[1] * h;
 
 			this._layers[layer].context.clearRect(x, y, w, h);
+			return true;
 		}else return false;
+	}
+
+	me._clearLayer = function(l){
+		var w = this._dimensions[0],
+			h = this._dimensions[1];
+
+		this._layers[l].context.clearRect(0,0, w, h);
+		return true;
 	}
 
 	me._over = function(ev){
@@ -153,6 +162,10 @@ Board.prototype = (function(){
 		cc.fill();
 	}
 
+	me.clearBoard = function(){
+		return this._clearLayer(1);
+	}
+
 	me.play = function(pt, color){
 		var bow = (!!color) ? "#FFF" : "#000";
 		this._board[pt[0]][pt[1]] = true;
@@ -163,7 +176,7 @@ Board.prototype = (function(){
 		if(color === undefined){
 			color = this._color;
 		}
-		var bow = (!!color) ? "rgba(255,255,255, 0.5)" : "rgba(0,0,0,0.5)";
+		var bow = (!!color) ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)";
 		this._circle(pt, bow, 2);
 	}
 
@@ -182,6 +195,53 @@ Board.prototype = (function(){
 			this._board[pt[0]][pt[1]] = false;
 			this._clear(pt, 1);
 		}
+	}
+
+	me.destroy = function(){
+		this._container.innerHTML = "";
+	}
+
+	me.projectGameImage = function(sora){
+		var width = this._spaces[0],
+			height = this._spaces[1];
+
+		if (sora instanceof Array){
+			if (sora.length > 0 &&
+				sora.length === width &&
+				sora[0].length === height){
+
+				for (var i = 0; i < sora.length; i++) {
+					for (var j = 0; j < sora[i].length; j++) {
+						var n = parseInt(sora[i][j]);
+						if(n === 5){
+							this._clear([i, j], 1);
+						}else{
+							this.play([i, j], n);
+						}
+					}
+				}
+			}else{
+				return false;
+			}
+		}else{
+			if (sora.length === width * height){
+				for (var i = 0; i < sora.length; i++) {
+					var x = i % width,
+						y = Math.floor(i / width),
+						n = parseInt(sora[i]);
+					
+					if(n === 5){
+						this._clear([x, y], 1);
+					}else{
+						this._circle([x, y], 1, n);
+					}
+				}
+			}else{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	me.resetCanvas = function(){

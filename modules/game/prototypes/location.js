@@ -35,6 +35,10 @@ module.exports = (function(){
 		return this._group;
 	}
 
+	me.isGrouped = function(){
+		return this._group !== false;
+	}
+
 	me.setPlace = function(coords, game){
 		this._place = coords;
 		this._game = game;

@@ -21,13 +21,16 @@ Stone.prototype = (function(){
 		return this._color;
 	}
 
-	me.place = function(place, game){
+	me.place = function(place, game, quiet){
 		if(this._place || this._game){
 			return false;
 		}
 
 		this._place = place;
 		this._game = game;
+
+		// in quiet mode no grouping takes place
+		if(quiet) return true;
 
 		var biggest,
 			maxSize = 0,
@@ -68,6 +71,7 @@ Stone.prototype = (function(){
 			sg = new StoneGroup(game, color);
 
 		sg.addStone(this);
+		return sg;
 	}
 
 	me.setGroup = function(group){

@@ -8,6 +8,7 @@ function give(arg){
 	return arg;
 }
 
+
 //Built in object extensions:
 require("./modules/extend/array.js");
 
@@ -27,7 +28,7 @@ var Unique = require('./modules/unique'),
 
 //create new list and have it cleaned every minute
 var ONLINE = new ProfileList();
-ONLINE.clean(5000);
+ONLINE.clean(60000);
 
 var REQUESTS = {};
 
@@ -113,6 +114,7 @@ io.sockets.on('connection', function(socket){
 
 		var targ = ONLINE.bid(data.target);
 		targ.on('game_accept', function(udata){
+
 			var pot = REQUESTS[udata.toke];
 			if(pot.target === targ.uid){
 				var params = pot.parameters;
@@ -129,7 +131,8 @@ io.sockets.on('connection', function(socket){
 				// order determines who is black and white in the game (first is black)
 				var order = (!pot.turn) ? [profile.uid, targ.uid] : [targ.uid, profile.uid];
 
-				var players = new ProfilePair(targ, profile),
+				var 
+					players = new ProfilePair(targ, profile),
 					game = new Game(order, {
 						"width": params.size[0],
 						"height": params.size[1],
@@ -167,6 +170,7 @@ io.sockets.on('connection', function(socket){
 						opp.off('decline_undo');
 
 						var undo = game.undo(id);
+						
 						players.send('undo', undo);
 					});
 
@@ -176,6 +180,8 @@ io.sockets.on('connection', function(socket){
 
 						mee.send('undo', false);
 					});
+
+					opp.send('');
 				});
 
 				profile.send('new_game', {

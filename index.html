@@ -132,17 +132,28 @@
 			}
 
 
-			var sync = syncFactory();
+			var sync = syncFactory(),
+				sv  = 0;
+
+			function undo(){
+				var udo = game.undo(names[TURN]);
+
+				board.clearBoard();
+				board.putStones(0, udo.current[0]);
+				board.putStones(1, udo.current[1]);
+			}
 
 			board.ontileclick = function(pt){
 				var play = game.play(pt, names[TURN]);
 
 				if(play){
-					sync(play.turn, function(){
+					sync(sv, function(){
 						board.play(play.point, play.color);
 						board.remove(play.captures);
 						toggle();
 					});
+
+					sv++;
 				}
 			}
 

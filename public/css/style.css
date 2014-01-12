@@ -48,6 +48,15 @@ h3{
 
 
 
+#request form ul{
+	list-style-type: none;
+	
+}
+
+
+
+
+
 #game{
 	position: absolute;
 	width: 100%;

@@ -2,7 +2,7 @@
 	<head>
 		<script type="text/javascript" src="socket.io/socket.io.js"></script>
 		<title>GOUW</title>
-		<link rel="stylesheet" type="text/css" href="css/style.css">
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
 		<script type="text/javascript" src="js/board.js"></script>
 	</head>
 	<body>
@@ -12,11 +12,9 @@
 				<ul id="users">
 					<!-- gets filled with list of users -->
 				</ul>
-
 			</div>
 
 			<div id="request">
-
 			</div>
 
 			<div id="game">
@@ -56,23 +54,23 @@
 			}
 
 			function append(elem, stuff){
-				if (stuff instanceof String){
-					var node = document.createTextNode(append);
-					elem.appendChild(node);
-				}else if (stuff instanceof Node){
+
+				if (stuff instanceof HTMLElement){
 					elem.appendChild(stuff);
 				}else if (stuff instanceof Array){
 					for(var i = 0; i < stuff.length; i++){
 						append(elem, stuff[i]);
 					}
 				}else{
-					return false;
+					var node = document.createTextNode(stuff);
+					elem.appendChild(node);
 				}
 
 				return true;
 			}
 
 			function tag(type, attributes, attach){
+
 				var ele = document.createElement(type);
 
 				for(var k in attributes){
@@ -112,6 +110,8 @@
 				var me = {};
 				var USERS = document.querySelector("#users");
 
+				var hash = {};
+
 				function listItem(info){
 					var el = document.createElement("li");
 					el.setAttribute("id", 'i' + info.socket);
@@ -119,8 +119,8 @@
 
 					el.innerHTML = info.name;
 					el.onclick = function(){
-						console.log("game requested...");
-						me.sendGameRequest(info.socket, {});
+						RequestDisplay.setTarget(info.socket);
+						RequestDisplay.show();
 					}
 
 					return el;
@@ -134,12 +134,14 @@
 					}else{
 						var el = listItem(obj);
 						USERS.appendChild(el);
+						hash[obj.socket] = obj;
 					}
 				}
 
 				me.erase = function(id){
 					var li = USERS.querySelector('#i' + id);
 					USERS.removeChild(li);
+					delete hash[id];
 
 					return true;
 				}
@@ -151,6 +153,10 @@
 					});
 				}
 
+				me.getInfo = function(id, field){
+					return hash[id][field];
+				}
+
 				return me;
 			}());
 
@@ -160,22 +166,28 @@
 
 				me.onsubmit = function(){};
 
-				var UL = tag("ul", {});
+				var CONTAINER = qe("#request");
+
+				var 
+					HEAD = tag("h3", {}),
+					UL = tag("ul", {});
 
 				var FORM = tag("form", {
 					"action": "javascript: void(0);",
 					"class": "hidden",
 					"onsubmit": function(e){
-						me.onsubmit(options, e);
+						me.send();
 					}
-				}, UL);
+				}, [HEAD, UL]);
 
 				var target = false;
 
 				var options = {};
 
-				function addOption(keyval, id, name){
-					var name = name || id,
+				var ef = function(){};
+
+				function addOption(keyval, id, namee){
+					var name = namee || id,
 						array = Object.keys(keyval);
 
 
@@ -200,11 +212,10 @@
 					}, [head, select]);
 
 					UL.appendChild(li);
+					select.onchange();
 				}
 
 				function addTextInput(id, name, placeholder){
-					var name = name || id;
-
 					var h3 = tag("h3", {}, name);
 
 					var text = tag("textarea", {
@@ -221,6 +232,7 @@
 					}, [h3, text]);
 
 					UL.appendChild(li);
+					text.onchange();
 				}
 
 				me.show = function(){
@@ -239,21 +251,32 @@
 
 				}
 
-				me.attach = function(elem){
-					elem.appendChild(FORM);
+				me.getOptions = function(){
+					return options;
 				}
 
-				me.getOptions = function(){
-					return options.clone(true);
+				me.setTarget = function(id){
+					var name = Users.getInfo(id, "name");
+
+					target = id;
+					HEAD.innerHTML = "Target: " + name;
+				}
+
+				me.send = function(){
+					SOCKET.emit('game_request',{
+						"target": target,
+						"parameters": options
+					});
 				}
 
 				addOption({
 					"9x9": [9,9],
 					"13x13": [13,13],
 					"19x19": [19,19]
-				}, "board_size", "Board Size");
+				}, "size", "Board Size");
 
 				addOption({
+					"0": false,
 					"1": 1,
 					"2": 2,
 					"3": 3,
@@ -284,6 +307,8 @@
 
 				UL.appendChild(submit);
 
+				CONTAINER.appendChild(FORM);
+
 				return me;
 			}());
 
@@ -294,7 +319,6 @@
 				var 
 					score = [0,0],
 					board = undefined,
-					sync = undefined,
 					color = 0,
 
 					GAME = qe("#game"),
@@ -312,6 +336,7 @@
 				function syncFactory(){
 					var hash = {}, i = false;
 					return function(num, func){
+
 						if(i === false){
 							i = num;
 						}
@@ -380,26 +405,34 @@
 						}
 					);
 
+					board.putStones(0, ob.initial[0]);
+					board.putStones(1, ob.initial[1]);
+
 					color = ob.color;
 
 					board.ontilehover = tilehover;
 					board.ontileclick = tileclick;
 
-					sync = syncFactory();
-
 					return true;
 				}
 
 				me.play = function(ob){
-					sync(ob.turn, function(){
-						board.play(ob.point, ob.color);
-						board.remove(ob.captures);
-						addScore(ob.color, ob.captures.length);
-					});
+					board.play(ob.point, ob.color);
+					board.remove(ob.captures);
+					addScore(ob.color, ob.captures.length);
 
 					return true;
 				}
 
+				me.pass = function(ob){
+					me.skip(ob.____sv);
+				}
+
+				me.undo = function(ob){
+					board.clearBoard();
+					board.putStones(0, ob.current[0]);
+					board.putStones(1, ob.current[1]);
+				}
 
 				me.show = function(){
 					GAME.style.opacity = "1.0";
@@ -509,24 +542,35 @@
 				Users.erase(pid);
 			});
 
-
-
 			SOCKET.on('game_request', function(data){
-				console.log("game request received");
 				SOCKET.emit('game_accept', data);
 			});
 
 			SOCKET.on('new_game', function(p){
-				console.log("whack");
 				GameDisplay.show();
+				GameDisplay.newGame(p);
 
 				GameDisplay.onplay = function(pt){
-					console.log("play done");
 					SOCKET.emit('play', {
 						"point": pt
 					});
 				}
-				GameDisplay.newGame(p);
+
+				GameDisplay.onpass = function(){
+					SOCKET.emit('pass', false);
+				}
+
+				GameDisplay.onundorequest = function(){
+					SOCKET.emit('request_undo', false);
+				}
+
+				SOCKET.on('request_undo', function(data){
+					var cstr = "Your opponent has requested and undo, accept?",
+						accept = confirm(cstr);
+
+					if(accept) SOCKET.emit('accept_undo', false);
+					else SOCKET.emit('decline_undo', false);
+				});
 
 				SOCKET.on('game_update', function(data){
 
@@ -543,7 +587,6 @@
 					}
 				});
 			});
-
 
 		</script>
 	</body>
