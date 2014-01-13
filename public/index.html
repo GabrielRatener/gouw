@@ -474,58 +474,12 @@
 			}());
 
 
-			//namespace Display
-			/*
-			var Game = (function(){
-				var me = {};
-				var DISPLAY = document.querySelector("#display"),
-					LIST = document.querySelector("#hand");
 
-				var YourHand = (function(){
-					var me = {};
 
-					var LIST = document.querySelector("#yourhand");
 
-					return me;
-				}());
 
-				var MyHand = (function(){
-					var me = {};
 
-					var LIST = document.querySelector("myhand#");
 
-					return me;
-				}());
-
-				var IMG_URL = "cards/";
-
-				// all protected functions go here
-
-				function cardView(type){
-					var el = document.createElement("li");
-					el.attribute({
-						"class": "cardview"
-					});
-
-					var image = new Image();
-					image.src = IMG_URL + type;
-
-					el.appendChild(image);
-					return el;
-				}
-
-				me.match = function(opponent){
-					var turn = false, hand = [];
-
-					SOCKET.removeEventListener('play');
-					SOCKET.on('play', function(data){
-						opponent
-					});
-				}
-
-				return me;
-			}());
-			*/
 
 			var SOCKET = io.connect('http://' + document.location.hostname);
 			SOCKET.on('info', function(info){
@@ -570,6 +524,15 @@
 
 					if(accept) SOCKET.emit('accept_undo', false);
 					else SOCKET.emit('decline_undo', false);
+				});
+
+				SOCKET.on('undo', function(data){
+					if(data){
+						console.log('undo accepted');
+						GameDisplay.undo(data);
+					}else{
+						console.log('undo declined');
+					}
 				});
 
 				SOCKET.on('game_update', function(data){

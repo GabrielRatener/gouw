@@ -48,7 +48,9 @@ ProfilePair.prototype = (function(){
 	}
 
 	me.byUid = function(id){
-		return this._hash[id];
+		if(this._array[1].uid === id){
+			return this._array[1];
+		}else return this._array[0];
 	}
 
 	me.byNotUid = function(id){

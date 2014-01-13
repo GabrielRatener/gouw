@@ -181,7 +181,7 @@ io.sockets.on('connection', function(socket){
 						mee.send('undo', false);
 					});
 
-					opp.send('');
+					opp.send('request_undo', true);
 				});
 
 				profile.send('new_game', {
