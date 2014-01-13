@@ -47,6 +47,9 @@ function Game(players, options){
 		"stones": [[],[]]
 	};
 
+	// when true pass will end the game
+	this._pass = false;
+
 	var board = [];
 	for (var i = 0; i < opts.width; i++) {
 		board.push([]);
@@ -541,7 +544,17 @@ Game.prototype = (function(){
 	me.pass = function(id){
 		if(this._players[this._turn] !== id){
 			return false;
-		}else return this.gameStateUpdate();
+		}else{
+			if(this._pass){
+				this.score();
+				return this.endedGameState();
+			}else{
+				this._pass = true;
+				this._nextMove();
+			}
+
+			return this.gameStateUpdate();
+		}
 	}
 
 	me.resign = function(id){
