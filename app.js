@@ -148,7 +148,7 @@ io.sockets.on('connection', function(socket){
 					else players.send('error', data);
 				});
 
-				players.on('pass', function(id){
+				players.on('pass', function(data, id){
 					var pass = game.pass(id);
 
 					players.send('pass', pass);
@@ -160,7 +160,7 @@ io.sockets.on('connection', function(socket){
 					players.send('resign', resign);
 				});
 
-				players.on('request_undo', function(id){
+				players.on('request_undo', function(data, id){
 
 					var mee = players.byUid(id),
 						opp = players.byNotUid(id);
