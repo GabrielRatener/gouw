@@ -407,7 +407,8 @@ Game.prototype = (function(){
 		if(now.is() !== 5) return false;
 
 		// if point is empty space
-		var ncolor = (!!color) ? 0 : 1,
+		var 
+			ncolor = (!!color) ? 0 : 1,
 			adj = this.adjacent(point),
 			thiss = this,
 			freqs = adj.process(function(object){
@@ -438,6 +439,7 @@ Game.prototype = (function(){
 					lastt.played[0].is(place) && 
 					lastt.captured[0].is(point)){
 
+					// return false if ko
 					return false;
 				}
 			}
@@ -511,6 +513,10 @@ Game.prototype = (function(){
 			var un = 2;
 		}else{
 			var un = 1;
+		}
+
+		if (un  >= this._turns.length){
+			return false;
 		}
 
 		var hist = this.gameStateBack(un);

@@ -67,7 +67,7 @@ var app = http.createServer(function(req, res) {
 					res.end('Error loading: ' + pat);
 				}else{
 					var mtype = mime.lookup(pat);
-					res.writeHead(200, {
+					res.writeHead(200, { 
 						"Content-Length": data.length,
 						"Content-Type": mtype
 					});
@@ -106,9 +106,17 @@ io.sockets.on('connection', function(socket){
 	});
 
 	profile.on('game_request', function(data){
-		var toke = uni.token();
+		var toke = uni.token(),
+			oid = profile.uid,
+			oname = profile.uname;
+
 		REQUESTS[toke] = data;
+
 		data.toke = toke;
+		data.origin = {
+			"id": oid,
+			"name": oname
+		};
 
 		if(!data.target) return;
 
@@ -165,7 +173,7 @@ io.sockets.on('connection', function(socket){
 					var mee = players.byUid(id),
 						opp = players.byNotUid(id);
 
-					opp.on('accept_undo', function(id){
+					opp.on('accept_undo', function(){
 						opp.off('accept_undo');
 						opp.off('decline_undo');
 
@@ -174,7 +182,7 @@ io.sockets.on('connection', function(socket){
 						players.send('undo', undo);
 					});
 
-					opp.on('decline_undo', function(id){
+					opp.on('decline_undo', function(){
 						opp.off('accept_undo');
 						opp.off('decline_undo', false);
 
@@ -201,6 +209,7 @@ io.sockets.on('connection', function(socket){
 				////////////////////////////////////
 			}
 		});
+	
 		targ.send('game_request', data);
 	});
 

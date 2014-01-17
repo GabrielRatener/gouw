@@ -205,7 +205,7 @@ Profile.prototype = (function(){
 
 
 		get uname(){
-			return this._socket.name;
+			return this._info.name;
 		},
 		set uname(val){
 			console.log("read only");

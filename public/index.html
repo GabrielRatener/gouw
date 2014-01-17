@@ -85,6 +85,14 @@
 				}else return false;
 			}
 
+			function gameRequestMessage(data){
+				var mcol = (data.parameters.color) ? 'black' : 'white',
+					name = data.origin.name,
+					hand = data.parameters.handicap;
+
+				return name + " wants to play a game as " + mcol + ", with handicap of " + hand + ", are you in?";
+			}
+
 			var MY_NAME, MY_ID;
 
 			var Title = (function(){
@@ -497,7 +505,16 @@
 			});
 
 			SOCKET.on('game_request', function(data){
-				SOCKET.emit('game_accept', data);
+
+				var 
+					msg = gameRequestMessage(data),
+					ace = confirm(msg);
+
+				if(ace){
+					SOCKET.emit('game_accept', data);					
+				}else{
+					SOCKET.emit('game_decline', data);
+				}
 			});
 
 			SOCKET.on('new_game', function(p){
