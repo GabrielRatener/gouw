@@ -2,6 +2,10 @@ var Names = (function(){
 	var me = {};
 
 	var NOUNS = [
+		"clay",
+		"air shaft",
+		"ducky",
+		"cigarette",
 		"noodle",
 		"centrifuge",
 		"home",

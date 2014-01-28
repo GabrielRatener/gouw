@@ -54,6 +54,13 @@ function Board(container, params){
 	this.ontileclick = function(){};
 
 	var thiss = this;
+	this._stoneHash = {};
+
+
+	// point to given layer
+	this._grid = layers[0];
+	this._stones = layers[1];
+	this._ghosts = layers[2];
 
 	this.resetCanvas();
 }
@@ -68,6 +75,13 @@ Board.prototype = (function(){
 		"13x13": [2, 6, 10],
 		"19x19": [3, 9, 15]
 	};
+
+	var layers = {
+		"grid": 0,
+		"stones": 1,
+		"ghosts": 2
+	};
+
 
 	me._clear = function(pt, layer){
 
@@ -91,7 +105,8 @@ Board.prototype = (function(){
 	}
 
 	me._over = function(ev){
-		var dims = this._dimensions;
+		var dims = this._dimensions,
+			layer = layers["ghosts"];
 
 		var x = Math.floor(this._spaces[0] * ev.x / dims[0]),
 			y = Math.floor(this._spaces[1] * ev.y / dims[1]);
@@ -105,7 +120,7 @@ Board.prototype = (function(){
 		var now = [x, y],
 			las = this._last;
 		if(now !== las){
-			this._clear(this._last, 2);				
+			this._clear(this._last, layer);				
 
 			this._last = now;
 			this.ontilehover(now);
@@ -136,7 +151,8 @@ Board.prototype = (function(){
 			x = (pt[0] + 0.5) * w,
 			y = (pt[1] + 0.5) * h,
 			r = 0.1 * Math.min(w, h),
-			cc = this._layers[0].context;
+			i = layers["grid"],
+			cc = this._layers[i].context;
 
 		cc.fillStyle = "#000";
 		cc.beginPath();
@@ -162,22 +178,40 @@ Board.prototype = (function(){
 		cc.fill();
 	}
 
+	me._placeNumber = function(pt){
+		return pt[1] * this._spaces[0] + pt[0];
+	}
+
+	me._toPoint = function(pn){
+		var w = this._spaces[0];
+		return [
+			pn % w,
+			Math.floor(pn / w)
+		];
+	}
+
 	me.clearBoard = function(){
-		return this._clearLayer(1);
+		var layer = layers["stones"];
+		return this._clearLayer(layer);
 	}
 
 	me.play = function(pt, color){
-		var bow = (!!color) ? "#FFF" : "#000";
+		var bow = (!!color) ? "#FFF" : "#000",
+			ln = layers["stones"];
 		this._board[pt[0]][pt[1]] = true;
-		this._circle(pt, bow, 1);
+		this._circle(pt, bow, ln);
+
+		var n = this._placeNumber(pt);
+		this._stoneHash[n] = color;
 	}
 
 	me.putGhost = function(pt, color){
 		if(color === undefined){
 			color = this._color;
 		}
-		var bow = (!!color) ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)";
-		this._circle(pt, bow, 2);
+		var bow = (!!color) ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)",
+			ln = layers["ghosts"];
+		this._circle(pt, bow, ln);
 	}
 
 	me.putStones = function(color, array){
@@ -189,11 +223,15 @@ Board.prototype = (function(){
 	}
 
 	me.remove = function(places){
+		var layer = layers["stones"];
 		for (var i = 0; i < places.length; i++) {
 			var pt = places[i];
 
 			this._board[pt[0]][pt[1]] = false;
-			this._clear(pt, 1);
+			this._clear(pt, layer);
+
+			var n = this._placeNumber(pt);
+			delete this._stoneHash[n];
 		}
 	}
 
@@ -203,7 +241,8 @@ Board.prototype = (function(){
 
 	me.projectGameImage = function(sora){
 		var width = this._spaces[0],
-			height = this._spaces[1];
+			height = this._spaces[1],
+			sl = layers["stones"];
 
 		if (sora instanceof Array){
 			if (sora.length > 0 &&
@@ -214,7 +253,7 @@ Board.prototype = (function(){
 					for (var j = 0; j < sora[i].length; j++) {
 						var n = parseInt(sora[i][j]);
 						if(n === 5){
-							this._clear([i, j], 1);
+							this._clear([i, j], sl);
 						}else{
 							this.play([i, j], n);
 						}
@@ -231,9 +270,9 @@ Board.prototype = (function(){
 						n = parseInt(sora[i]);
 					
 					if(n === 5){
-						this._clear([x, y], 1);
+						this._clear([x, y], sl);
 					}else{
-						this._circle([x, y], 1, n);
+						this._circle([x, y], sl, n);
 					}
 				}
 			}else{

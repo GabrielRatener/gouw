@@ -9,6 +9,8 @@ function ProfilePair(p1, p2){
 }
 
 ProfilePair.prototype = (function(){
+
+	// initialize me (prototype object) with getters and setters
 	var me = {
 		get p1(){
 			return this._array[0];

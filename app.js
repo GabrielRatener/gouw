@@ -1,5 +1,3 @@
-/* Gennerally useful methods for arrays */
-
 // for debugging
 var DEBUG_MODE = false;
 
@@ -13,14 +11,15 @@ function give(arg){
 require("./modules/extend/array.js");
 
 // modules
-var http = require('http'),
+var 
+	http = require('http'),
 	mime = require('mime'),
 	url = require('url'),
 	fsy = require('fs'),
-	socketio = require('socket.io');
+	socketio = require('socket.io'),
 
 // constructors
-var Unique = require('./modules/unique'),
+	Unique = require('./modules/unique'),
 	Profile = require('./modules/profile'),
 	ProfileList = require('./modules/profile_list'),
 	ProfilePair = require('./modules/profile_pair'),
@@ -35,8 +34,6 @@ var REQUESTS = {};
 var GAMES = {};
 
 var uni = new Unique(10);
-
-
 
 // http server
 // if debug mode is off only public/ is visible
@@ -137,7 +134,7 @@ io.sockets.on('connection', function(socket){
 
 
 				// order determines who is black and white in the game (first is black)
-				var order = (!pot.turn) ? [profile.uid, targ.uid] : [targ.uid, profile.uid];
+				var order = (!params.color) ? [profile.uid, targ.uid] : [targ.uid, profile.uid];
 
 				var 
 					players = new ProfilePair(targ, profile),
