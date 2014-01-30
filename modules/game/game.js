@@ -263,9 +263,22 @@ Game.prototype = (function(){
 		var w = this._options.width,
 			h = this._options.height;
 
+		// make exception for 6 stone handicap
+		if(n === 6){
+			n = 7;
+			forbid = [4];
+		}else{
+			forbid = [];
+		}
+
 		var arr = [],
 			han = scales[w + "x" + h];
 		for(var i = 0; i < n; i++){
+			// forbidden numbers
+			if(forbid.indexOf(i) >= 0){
+				continue;
+			}
+
 			var of = handicaps[i],
 				point = [han[of[0]], han[of[1]]]
 			arr.push(point);

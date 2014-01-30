@@ -10,15 +10,16 @@ function give(arg){
 //Built in object extensions:
 require("./modules/extend/array.js");
 
-// modules
 var 
+
+// modules
 	http = require('http'),
 	mime = require('mime'),
 	url = require('url'),
 	fsy = require('fs'),
 	socketio = require('socket.io'),
 
-// constructors
+// constructor functions
 	Unique = require('./modules/unique'),
 	Profile = require('./modules/profile'),
 	ProfileList = require('./modules/profile_list'),
@@ -45,7 +46,7 @@ var app = http.createServer(function(req, res) {
 	file.clean("");
 
 	if(file[0] === "q"){
-
+		
 	}else{
 		if(file.contains("~", "..", ".", "/")){
 			res.writeHead(403);
