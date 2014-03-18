@@ -21,7 +21,7 @@ Stone.prototype = (function(){
 		return this._color;
 	}
 
-	me.place = function(place, game, quiet){
+	me.place = function(place, game){
 		if(this._place || this._game){
 			return false;
 		}
@@ -29,40 +29,7 @@ Stone.prototype = (function(){
 		this._place = place;
 		this._game = game;
 
-		// in quiet mode no grouping takes place
-		if(quiet) return true;
-
-		var biggest,
-			maxSize = 0,
-			adj = this.adjacent(),
-			color = this._color,
-			grouped = {},
-			groups = [];
-
-		for (var i = 0; i < adj.length; i++) {
-			if(!adj[i]){
-				continue;
-			}else{
-				var is = adj[i].is(),
-					group = adj[i].group,
-					id = group.id;
-				if(is === color){
-					var size = group.size();
-					if(size > maxSize){
-						maxSize = size;
-						biggest = group;
-					}
-				}
-			}
-		}
-
-		if(biggest){
-			biggest.crawl();
-		}else{
-			this.spawnGroup();
-		}
-
-		return this.group.updateAdjacentGroups(true);
+		return true;
 	}
 
 	me.spawnGroup = function(){

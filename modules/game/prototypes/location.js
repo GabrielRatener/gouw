@@ -1,3 +1,9 @@
+var
+
+	// constructors
+	GroupCollection = require('../group_collection.js'),
+	LocationCollection = require('../location_collection.js');
+
 module.exports = (function(){
 	var me = {
 		// getters and/or setters
@@ -8,6 +14,11 @@ module.exports = (function(){
 
 		get game(){
 			return this._game;
+		}
+
+
+		get id(){
+			return this.placeNumber();
 		}
 	};
 
@@ -96,6 +107,15 @@ module.exports = (function(){
 
 			return ret;
 		}
+	}
+
+	me.adjacentPlaces = function(){
+		var
+			adj = this.adjacent(),
+			pls = new LocationCollection();
+
+		pls.add(adj);
+		return pls;
 	}
 
 	me.distanceTo = function(location, vectorForm){

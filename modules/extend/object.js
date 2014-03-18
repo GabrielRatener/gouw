@@ -24,3 +24,26 @@ Object.prototype.clone = function(deep){
 		return nu;
 	}
 }
+
+Object.prototype.keyIterator = function(){
+	var 
+		i = 0,
+		keys = Object.keys(this),
+		iterator = {};
+
+	iterator.hasNext = function(){
+		return (i < keys.length);
+	}
+
+	iterator.next = function(){
+		i += 1;
+		return keys[i - 1];
+	}
+
+	return iterator;
+}
+
+// works in virtual machines -> for debugging
+Object.prototype.instanceOf = function(functi){
+	return (Object.getPrototypeOf(this) === functi.prototype);
+}

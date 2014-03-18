@@ -1,6 +1,5 @@
 // for debugging
-var DEBUG_MODE = false;
-
+var DEBUG_MODE = true;
 
 function give(arg){
 	return arg;
@@ -46,7 +45,7 @@ var app = http.createServer(function(req, res) {
 	file.clean("");
 
 	if(file[0] === "q"){
-		
+
 	}else{
 		if(file.contains("~", "..", ".", "/")){
 			res.writeHead(403);

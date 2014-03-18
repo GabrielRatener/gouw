@@ -89,18 +89,18 @@ StoneGroup.prototype = (function(){
 		}
 
 		this._liberties = liberties;
+		return true;
+	}
 
-		if(capture && liberties === 0){
-			this._game.capture(this);
-		}
-
-		return liberties;
+	me.is = function(){
+		return this._color;
 	}
 
 	me.liberties = function(){
 		return this._liberties;
 	}
 
+	// method is defacated
 	me.takeLiberty = function(capture){
 		this._liberties -= 1;
 		if(capture && this._liberties === 0){
@@ -127,6 +127,7 @@ StoneGroup.prototype = (function(){
 		}
 	}
 
+	// use is defacated and will not be included in future versions
 	me.updateAdjacentGroups = function(capture){
 		var notified = {},
 			members = this._members,

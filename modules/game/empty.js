@@ -10,7 +10,9 @@ function Empty(place, game){
 Empty.prototype = (function(){
 	var me = Object.create(prototype);
 
-	me._is = 5;
+	me.is = function(){
+		return 5;
+	}
 
 	return me;
 }());

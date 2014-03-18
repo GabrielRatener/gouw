@@ -3,26 +3,8 @@ require('../extend/array.js');
 
 var Empty = require('./empty.js'),
 	Stone = require('./stone.js'),
+	GroupCollection = require('./group_collection.js'),
 	Unique = require('../unique.js');
-
-BLACK = 0;
-WHITE = 1;
-EMPTY = 5;
-ETHER = -5;
-
-function adda(){
-	var lead = arguments[0], arr = [];
-	for (var i = 0; i < lead.length; i++) {
-		var sum = 0;
-		for(var j = 0; j < arguments.length; j++){
-			sum += arguments[j][i];
-		}
-
-		arr.push(sum);
-	}
-
-	return arr;
-}
 
 function Game(players, options){
 	// players[0]: black, players[1]: white
@@ -80,6 +62,13 @@ Game.prototype = (function(){
 
 	var me = Object.create(null);
 
+	BLACK = 0;
+	WHITE = 1;
+	EMPTY = 5;
+	ETHER = -5;
+
+	// for convenience a single 'ether' object is used to
+	// represent 'spaces' which are not on the board
 	var ether = (function(){
 		var me = {};
 
@@ -102,20 +91,30 @@ Game.prototype = (function(){
 		});
 
 		me.distanceTo = function(){
-			return 100;
+			return -5;
 		}
 
 		me.size = function(){
-			return 1000;
+			return -5;
 		}
 
 		me.liberties = function(){
-			return 1000;
+			return -5;
+		}
+
+		me.placeNumber = function(){
+			return -5;
 		}
 
 		return me;
 	}());
 
+	/*
+	These points are to be scaled based on board size, the _handicapPlaces
+	method will add each point in the array n times, where n is the handicap 
+	for the game. If n is 6 (6 stone handicap), a seven stone handicap with the [1,1]
+	ommited will be used for proper symetry.	
+	*/
 	var handicaps = [
 		[2,2],
 		[0,0],
@@ -135,6 +134,7 @@ Game.prototype = (function(){
 		"19x19": [3, 9, 15]
 	};
 
+	// relative places of adjacent points
 	var adjacent = [
 		[-1, 0],
 		[0, 1],
@@ -146,6 +146,21 @@ Game.prototype = (function(){
 		return (!color) ? 1 : 0;
 	}
 
+	function adda(){
+		var lead = arguments[0], arr = [];
+		for (var i = 0; i < lead.length; i++) {
+			var sum = 0;
+			for(var j = 0; j < arguments.length; j++){
+				sum += arguments[j][i];
+			}
+
+			arr.push(sum);
+		}
+
+		return arr;
+	}
+
+	// refills board with empty place objects
 	me._resetBoard = function(){
 		var board = this._board;
 		for(var i = 0; i < board.length; i++){
@@ -161,6 +176,7 @@ Game.prototype = (function(){
 		return true;
 	}
 
+	// sora: string or array
 	me._setBoardFromRaw = function(sora){
 		var height = this._options.height,
 			width = this._options.width;
@@ -207,15 +223,40 @@ Game.prototype = (function(){
 		return true;
 	}
 
+	// puts stone of given color on board, if tame is set to
+	// true, adjacent groups are not notified of the stone placement.
 	me._putStone = function(color, point, tame){
 		var stone = new Stone(color);
 		this._board[point[0]][point[1]] = stone;
 		stone.place(point, this, tame);
+
+		var 
+			adjacent = stone.adjacent(),
+			collection = new GroupCollection(adjacent),
+			biggest = collection.largest(color);
+		
+		if(biggest){
+			biggest.crawl();
+		}else{
+			stone.spawnGroup();
+		}
+
+		var iterator = collection.iterator(oc(color));
+		clasp = collection;
+		while(iterator.hasNext()){
+			group = iterator.next();
+			group.calculateLiberties();
+			if(group.liberties() === 0){
+				this.capture(group);
+			}
+		}
+
+		return true;
 	}
 
+	// toggles turn, and pushes new initial turn object to end of turns array
 	me._nextMove = function(){
 		var bow = this._turn = oc(this._turn);
-
 		this._turns.push({
 			"color": bow,
 			"played": [],
@@ -224,6 +265,7 @@ Game.prototype = (function(){
 		});
 	}
 
+	// will undo n number of moves, regardless of color
 	me._undoMoves = function(n){
 		if (!n) return false;
 
@@ -235,6 +277,7 @@ Game.prototype = (function(){
 		this._nextMove();
 	}
 
+	// will register a captured point with the last element of the _turns array.
 	me._recordCapture = function(pt){
 		var turns = this._turns,
 			index = turns.length - 1;
@@ -243,6 +286,7 @@ Game.prototype = (function(){
 		return true;
 	}
 
+	// will record a play on the board with the last element of the _turns array
 	me._recordPlay = function(pt){
 		var turns = this._turns,
 			index = turns.length - 1;
@@ -251,14 +295,20 @@ Game.prototype = (function(){
 		return true;
 	}
 
+	// gets move i back in game from _turns array, where zero returns the last move played.
 	me._getMoveBack = function(i){
-		return this._turns[this._turns.length - (2 + i)];
+		var index = this._turns.length - (2 + i);
+		if(index < 0){
+			return false;
+		}else return this._turns[index];
 	}
 
+	// like _getMoveBack but from the beggining of the _turns array
 	me._getMoveAt = function(i){
 		return this._turns[i];
 	}
 
+	// returns array of points for handicap stones, for a given handicap n.
 	me._handicapPlaces = function(n){
 		var w = this._options.width,
 			h = this._options.height;
@@ -287,12 +337,15 @@ Game.prototype = (function(){
 		return arr;
 	}
 
+	// returns a unique string of length 10, strings will always
+	// be different when called from same object.
 	me.unique = function(){
 		return this._unique.token();
 	}
 
 	/* Information */
 
+	// returns object at given point on board, or ether object if point is not on the board.
 	me.at = function(point){
 		var opts = this._options;
 
@@ -308,7 +361,7 @@ Game.prototype = (function(){
 		return this._board[point[0]][point[1]];
 	}
 
-	// returns 4 value array of adjacent objects, or false, if
+	// returns 4 value array of adjacent objects.
 	me.adjacent = function(point){
 		var array = [];
 		for (var i = 0; i < adjacent.length; i++) {
@@ -319,6 +372,7 @@ Game.prototype = (function(){
 		return array;
 	}
 
+	// computes game state n moves back ass array of 5s, 0s, and 1s.
 	me.gameStateBack = function(n){
 		var raw = this.getBoard();
 
@@ -343,6 +397,7 @@ Game.prototype = (function(){
 
 		return raw;
 	}
+
 
 	me.getAllPoints = function(type){
 		var board = this._board,
@@ -379,6 +434,9 @@ Game.prototype = (function(){
 		}
 	}
 
+	// returns board as two dimensional array of 5s, 0s, 1s,
+	// for empty, black, white, respectively. if asString is set to true
+	// the a flattened string will be returned instead of an array.
 	me.getBoard = function(asString){
 		var height = this._options.height,
 			width = this._options.width,
@@ -408,11 +466,13 @@ Game.prototype = (function(){
 		}
 	}
 
+	// returns width and height of board
 	me.dimensions = function(){
 		var o = this._options;
 		return [o.width, o.height];
 	}
 
+	// validates move at a given point of a given color
 	me.validate = function(point, color, noko){
 
 		// make sure space is empty
@@ -485,7 +545,7 @@ Game.prototype = (function(){
 
 	/* Commands */
 
-
+	// captures a group object.
 	me.capture = function(group){
 		var stone,
 			points,
@@ -495,7 +555,7 @@ Game.prototype = (function(){
 			notified = {},
 			notify = [];
 
-		while(stone = nextStone()){
+		while (stone = nextStone()) {
 			var adj = stone.adjacent(ncolor),
 				place = stone.where();
 
@@ -613,6 +673,18 @@ Game.prototype = (function(){
 		}
 
 		return this.initialGameState();
+	}
+
+	me.getGroups = function(){
+		var groups = new GroupCollection();
+		for (var i = 0; i < this._board.length; i++) {
+			var row = this._board[i];
+			for (var j = 0; j < row.length; j++) {
+				groups.add(row[j]);
+			};
+		};
+
+		return groups;
 	}
 
 	me.gameStateUpdate = function(){
