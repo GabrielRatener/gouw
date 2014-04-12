@@ -1,10 +1,4 @@
 var
-	Stone = require('./stone.js'),
-	Empty = require('./empty.js'),
-	StoneGroup = require('./stone_group.js'),
-	EmptyGroup = require('./empty_group.js'),
-
-
 	prototype = require('./prototypes/collection.js');
 
 function LocationCollection(){
@@ -31,14 +25,15 @@ LocationCollection.prototype = (function(){
 	var me = Object.create(prototype);
 
 	me.add = function(place){
-		if (place instanceof StoneGroup || place instanceof EmptyGroup){
+		var type = group.metatype();
+		if (type === 99){
 			var
 				pto,
 				next = place.memberIterator();
 			while(pto = next()){
 				this.add(pto);
 			}
-		}else if(place instanceof Stone || place instanceof Empty){
+		}else if (type === 9){
 			var n = place.placeNumber();
 			this._thingHash[n] = place;
 		}else return false;

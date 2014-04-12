@@ -1,10 +1,4 @@
 var
-	Stone = require('./stone.js'),
-	Empty = require('./empty.js'),
-	StoneGroup = require('./stone_group.js'),
-	EmptyGroup = require('./empty_group.js'),
-
-
 	prototype = require('./prototypes/collection.js');
 
 function GroupCollection(){
@@ -31,11 +25,12 @@ GroupCollection.prototype = (function(){
 	var me = Object.create(prototype);
 
 	me.add = function(group){
-		if(group instanceof StoneGroup || group instanceof EmptyGroup){
+		var type = group.metatype();
+		if(type === 99){
 			var id = group.id;
 			if(!id) return false;
 			this._thingHash[id] = group;
-		}else if(group instanceof Stone || group instanceof Empty){
+		}else if(type === 9){
 			var id = group.group.id;
 			if(!id) return false;
 			this._thingHash[id] = group.group;

@@ -47,3 +47,7 @@ Object.prototype.keyIterator = function(){
 Object.prototype.instanceOf = function(functi){
 	return (Object.getPrototypeOf(this) === functi.prototype);
 }
+
+Object.prototype.metatype = function(){
+	return 0;
+}

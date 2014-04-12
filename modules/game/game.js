@@ -466,6 +466,36 @@ Game.prototype = (function(){
 		}
 	}
 
+	me.getRawBoard = function(){
+		return this._board;
+	}
+
+	me.getLocations = function(){
+		var 
+			board = this._board,
+			collection = new LocationCollection();
+		for (var i = 0; i < width; i++) {
+			for(var j = 0; j < height; j++){
+				collection.add(board[i][j])
+			}
+		}
+
+		return collection;
+	}
+
+	me.getGroups = function(){
+		var 
+			board = this._board,
+			collection = new GroupCollection();
+		for (var i = 0; i < width; i++) {
+			for(var j = 0; j < height; j++){
+				collection.add(board[i][j])
+			}
+		}
+
+		return collection;
+	}
+
 	// returns width and height of board
 	me.dimensions = function(){
 		var o = this._options;

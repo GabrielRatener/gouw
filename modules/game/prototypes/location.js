@@ -14,13 +14,17 @@ module.exports = (function(){
 
 		get game(){
 			return this._game;
-		}
+		},
 
 
 		get id(){
 			return this.placeNumber();
 		}
 	};
+
+	me.metatype = function(){
+		return 9;
+	}
 
 	// Yay, recursion!!!!
 	me._crawl = function(is, hash, cluster){
