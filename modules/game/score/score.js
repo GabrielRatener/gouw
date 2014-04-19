@@ -26,7 +26,16 @@ Score.prototype = (function(){
 	var me = {};
 
 	me.isLiving = function(group){
+		var 
+			surroundingGroups = group.adjacentGroups(),
+			surroundingAreas = surroundingGroups.query(5),
+			surroundingIterator = surroundingAreas.iterator();
 
+		while (surroundingIterator.hasNext()){
+			var 
+				area = surroundingIterator.next(),
+
+		}
 	}
 
 	me.isDead = function(group){
@@ -35,16 +44,28 @@ Score.prototype = (function(){
 
 	// returns GroupCollection for groups connected
 	me.getConnectedGroups = function(group){
-
+		
 	}
 
 	me.score = function(){
 
 	}
 
-	// returns false if 2 eyes are not found
-	me.hasEyes = function(group){
-		
+	me.eyeCount = function(group){
+		var
+			count = 0,
+			surrounders = group.adjacentGroups(),
+			iterator = surrounders.iterator(5);
+
+		while (iterator.hasNext()){
+			var area = iterator.next();
+
+			if (area.adjacentGroups().count(group.is()) === 1){
+				count += 1;
+			}
+		}
+
+		return count;
 	}
 
 	return me;
